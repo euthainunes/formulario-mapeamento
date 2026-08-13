@@ -1,0 +1,854 @@
+// ============================================================================
+// Schema Prisma — Gestão da Comunicação + Inteligência da Intranet BeeHome
+// ============================================================================
+// Convenções:
+//  - Toda tabela multi-tenant carrega `tenantId` e é sempre filtrada por ele
+//    (ver TenantInterceptor / TenantPrismaService em src/tenant).
+//  - `metadataJson` guarda campos ainda não mapeados vindos da BeeHome, para
+//    não perder informação enquanto o contrato real do endpoint não é validado.
+//  - `sourceId` é o identificador do registro na BeeHome (quando aplicável),
+//    usado como chave de upsert idempotente junto com tenantId.
+// ============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ----------------------------------------------------------------------------
+// CORE — Tenant, identidade e RBAC do próprio SaaS
+// ----------------------------------------------------------------------------
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String
+  slug      String   @unique
+  // DNS específico da BeeHome para este tenant — TODO: confirmar formato exato
+  // (host completo? apenas subdomínio?) junto ao time BeeHome.
+  beehomeBaseUrl String?
+  active    Boolean  @default(true)
+  metadataJson Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users         User[]
+  companies     Company[]
+  departments   Department[]
+  jobTitles     JobTitle[]
+  teams         Team[]
+  pods          Pod[]
+  news          News[]
+  beezz         Beezz[]
+  reactions     Reaction[]
+  loginEvents   LoginEvent[]
+  devices       Device[]
+  awards        Award[]
+  admissionAwards AdmissionAward[]
+  metricSnapshots MetricSnapshot[]
+  dashboardFilters DashboardFilter[]
+  alertRules    AlertRule[]
+  alerts        Alert[]
+  aiInsights    AIInsight[]
+  syncJobs      SyncJob[]
+  syncLogs      SyncLog[]
+  auditLogs     AuditLog[]
+  reports       Report[]
+  reportExports ReportExport[]
+  roles         Role[]
+
+  // Bounded context futuro — Microsoft (Planner/Teams/Outlook)
+  projects      Project[]
+  campaigns     Campaign[]
+  tasks         Task[]
+  taskLabels    TaskLabel[]
+  taskPriorities TaskPriority[]
+  taskStatuses  TaskStatus[]
+  workloadSnapshots WorkloadSnapshot[]
+  plannerIntegrations PlannerIntegration[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String   @id @default(uuid())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name         String
+  email        String
+  passwordHash String
+  active       Boolean  @default(true)
+
+  companyId    String?
+  company      Company?   @relation(fields: [companyId], references: [id])
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  jobTitleId   String?
+  jobTitle     JobTitle?  @relation(fields: [jobTitleId], references: [id])
+  teamId       String?
+  team         Team?      @relation(fields: [teamId], references: [id])
+
+  avatarInitials String?
+  lastLoginAt  DateTime?
+  metadataJson Json?
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  userRoles    UserRole[]
+  alertsChanged AlertHistoryEntry[] @relation("AlertHistoryChangedBy")
+  reportsCreated Report[] @relation("ReportCreatedBy")
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@map("users")
+}
+
+model Role {
+  id          String   @id @default(uuid())
+  tenantId    String
+  tenant      Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  key         String   // ex: "administradora", "gestao-comunicacao", "colaborador"
+  name        String
+  description String?
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@unique([tenantId, key])
+  @@index([tenantId])
+  @@map("roles")
+}
+
+model Permission {
+  id          String   @id @default(uuid())
+  // Permissões são globais ao sistema (não multi-tenant), definem o catálogo
+  // fixo de capacidades — ver PERMISSION_KEYS em src/auth/permissions.constants.ts
+  key         String   @unique
+  description String?
+
+  rolePermissions RolePermission[]
+
+  @@map("permissions")
+}
+
+model UserRole {
+  id       String @id @default(uuid())
+  tenantId String
+  userId   String
+  roleId   String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, roleId])
+  @@index([tenantId])
+  @@map("user_roles")
+}
+
+model RolePermission {
+  id           String @id @default(uuid())
+  tenantId     String
+  roleId       String
+  permissionId String
+
+  role       Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@unique([roleId, permissionId])
+  @@index([tenantId])
+  @@map("role_permissions")
+}
+
+// ----------------------------------------------------------------------------
+// ORGANIZAÇÃO
+// ----------------------------------------------------------------------------
+
+model Company {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId String?
+  name     String
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users       User[]
+  departments Department[]
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@map("companies")
+}
+
+model Department {
+  id        String  @id @default(uuid())
+  tenantId  String
+  tenant    Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId  String?
+  name      String
+  companyId String?
+  company   Company? @relation(fields: [companyId], references: [id])
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  jobTitles JobTitle[]
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@map("departments")
+}
+
+model JobTitle {
+  id           String  @id @default(uuid())
+  tenantId     String
+  tenant       Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId     String?
+  name         String
+  departmentId String?
+  department   Department? @relation(fields: [departmentId], references: [id])
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@map("job_titles")
+}
+
+model Team {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId String?
+  name     String
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@map("teams")
+}
+
+model Pod {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId    String?
+  name        String
+  description String?
+  accessCount Int      @default(0)
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@map("pods")
+}
+
+// ----------------------------------------------------------------------------
+// CONTEÚDO E ENGAJAMENTO
+// ----------------------------------------------------------------------------
+
+model News {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId    String?
+  title       String
+  authorName  String?
+  publishedAt DateTime?
+  views       Int      @default(0)
+  likes       Int      @default(0)
+  comments    Int      @default(0)
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  reactions Reaction[]
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@map("news")
+}
+
+model Beezz {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId   String?
+  title      String?
+  authorName String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  publishedAt DateTime?
+  likes      Int      @default(0)
+  comments   Int      @default(0)
+  metadataJson Json?
+
+  reactions Reaction[]
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@map("beezz")
+}
+
+// Registro normalizado de reações — usa exatamente os nomes de campo
+// documentados na spec (countBeezzLiked, countCommentsBeezz, ...).
+// Cada linha representa um snapshot de contagem para um alvo (news ou beezz)
+// em um dado momento de sincronização.
+model Reaction {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  newsId  String?
+  news    News?  @relation(fields: [newsId], references: [id])
+  beezzId String?
+  beezz   Beezz? @relation(fields: [beezzId], references: [id])
+
+  countBeezzLiked       Int @default(0)
+  countCommentsBeezz    Int @default(0)
+  countBeezzCommentLike Int @default(0)
+  countNewsLiked        Int @default(0)
+  countCommentsNews     Int @default(0)
+  countNewsCommentLike  Int @default(0)
+  countVideoLiked       Int @default(0)
+  countCommentsVideos   Int @default(0)
+  countPollLiked        Int @default(0)
+  countPhotobookLiked   Int @default(0)
+  countBlogLiked        Int @default(0)
+  countPodcastLiked     Int @default(0)
+
+  capturedAt DateTime @default(now())
+  metadataJson Json?
+
+  @@index([tenantId])
+  @@map("reactions")
+}
+
+// ----------------------------------------------------------------------------
+// ACESSO / AUDITORIA DE LOGIN / DISPOSITIVOS
+// ----------------------------------------------------------------------------
+
+model LoginEvent {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId   String?
+  userSourceId String?
+  occurredAt DateTime
+  deviceId   String?
+  device     Device?  @relation(fields: [deviceId], references: [id])
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@index([tenantId, occurredAt])
+  @@map("login_events")
+}
+
+model Device {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId String?
+  type     String? // desktop | mobile | tablet — cf. DeviceType do front-end
+  label    String?
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  loginEvents LoginEvent[]
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@map("devices")
+}
+
+// ----------------------------------------------------------------------------
+// RECONHECIMENTO / PREMIAÇÕES
+// ----------------------------------------------------------------------------
+
+model Award {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId   String?
+  userSourceId String?
+  title      String?
+  awardedAt  DateTime?
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@map("awards")
+}
+
+model AdmissionAward {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId     String?
+  userSourceId String?
+  month        Int?
+  year         Int?
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@map("admission_awards")
+}
+
+// ----------------------------------------------------------------------------
+// MÉTRICAS DERIVADAS
+// ----------------------------------------------------------------------------
+
+// Snapshot histórico de uma métrica calculada, para permitir comparação entre
+// períodos sem recalcular a partir dos dados brutos toda vez.
+model MetricSnapshot {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  metricCode    String   // ex: "audience.activeUsers", "access.averageByHour"
+  metricVersion Int      @default(1)
+  periodStart   DateTime
+  periodEnd     DateTime
+  dimensionJson Json     // dimensões livres: { company, department, jobTitle, team, ... }
+  value         Decimal  @db.Decimal(18, 4)
+  sourceStatus  String   // "sucesso" | "parcial" | "falha" — cobertura da fonte no cálculo
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, metricCode, periodStart, periodEnd])
+  @@map("metric_snapshots")
+}
+
+model DashboardFilter {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  userId       String?
+  name         String
+  filtersJson  Json
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("dashboard_filters")
+}
+
+// ----------------------------------------------------------------------------
+// ALERTAS
+// ----------------------------------------------------------------------------
+
+model AlertRule {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name       String
+  metric     String
+  condition  String
+  threshold  Decimal  @db.Decimal(18, 4)
+  severity   String   // info | warning | critical
+  active     Boolean  @default(true)
+  createdBy  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  alerts Alert[]
+
+  @@index([tenantId])
+  @@map("alert_rules")
+}
+
+model Alert {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  ruleId      String
+  rule        AlertRule @relation(fields: [ruleId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  severity    String
+  status      String   @default("novo") // novo | em_analise | resolvido | ignorado
+  metric      String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  history AlertHistoryEntry[]
+
+  @@index([tenantId])
+  @@index([tenantId, status])
+  @@map("alerts")
+}
+
+model AlertHistoryEntry {
+  id       String @id @default(uuid())
+  tenantId String
+
+  alertId     String
+  alert       Alert   @relation(fields: [alertId], references: [id], onDelete: Cascade)
+  status      String
+  changedById String?
+  changedBy   User?   @relation("AlertHistoryChangedBy", fields: [changedById], references: [id])
+  note        String?
+  changedAt   DateTime @default(now())
+
+  @@index([tenantId])
+  @@map("alert_history_entries")
+}
+
+// ----------------------------------------------------------------------------
+// INSIGHTS (camada de regras determinísticas — NÃO é IA real)
+// ----------------------------------------------------------------------------
+
+model AIInsight {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  type            String   // comparativo | tendencia | ranking | anomalia
+  text            String
+  relatedDashboard String?
+  metricsUsed     Json?
+  periodAnalyzed  String?
+  generatedAt     DateTime @default(now())
+  metadataJson    Json?
+
+  @@index([tenantId])
+  @@map("ai_insights")
+}
+
+// ----------------------------------------------------------------------------
+// SINCRONIZAÇÃO COM A BEEHOME
+// ----------------------------------------------------------------------------
+
+model SyncJob {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  source        String   @default("Intranet BeeHome")
+  status        String   // sucesso | parcial | falha | em_execucao
+  startedAt     DateTime @default(now())
+  finishedAt    DateTime?
+  recordsProcessed Int   @default(0)
+  triggeredBy   String?  // "manual" | "scheduler"
+  metadataJson  Json?
+
+  logs SyncLog[]
+
+  @@index([tenantId])
+  @@map("sync_jobs")
+}
+
+model SyncLog {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  syncJobId      String
+  syncJob        SyncJob @relation(fields: [syncJobId], references: [id], onDelete: Cascade)
+  endpointAlias  String  // ex: "audit.loginsByDate"
+  startedAt      DateTime
+  finishedAt     DateTime?
+  status         String    // sucesso | parcial | falha
+  recordsRead    Int       @default(0)
+  recordsUpserted Int      @default(0)
+  errorCode      String?
+  errorDetail    String?   // NUNCA deve conter o token/Authorization
+
+  @@index([tenantId])
+  @@index([tenantId, syncJobId])
+  @@map("sync_logs")
+}
+
+// ----------------------------------------------------------------------------
+// AUDITORIA GERAL (mutações administrativas do próprio SaaS)
+// ----------------------------------------------------------------------------
+
+model AuditLog {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  actorId    String?
+  actorName  String?
+  action     String   // ex: "user.update", "alertRule.create", "alert.statusChange"
+  targetType String
+  targetId   String?
+  beforeJson Json?
+  afterJson  Json?
+  createdAt  DateTime @default(now())
+
+  @@index([tenantId])
+  @@index([tenantId, createdAt])
+  @@map("audit_logs")
+}
+
+// ----------------------------------------------------------------------------
+// RELATÓRIOS
+// ----------------------------------------------------------------------------
+
+model Report {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  name        String
+  type        String   // audiencia | acessos | conteudos | engajamento | pods | executivo
+  format      String   // pdf | excel | csv
+  status      String   @default("processando") // processando | concluido | falha
+  filtersJson Json
+  createdById String?
+  createdBy   User?    @relation("ReportCreatedBy", fields: [createdById], references: [id])
+
+  createdAt  DateTime @default(now())
+  finishedAt DateTime?
+  metadataJson Json?
+
+  exports ReportExport[]
+
+  @@index([tenantId])
+  @@map("reports")
+}
+
+model ReportExport {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  reportId String
+  report   Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  format   String
+  // Conteúdo do arquivo gerado. Para CSV guardamos o texto pronto; para
+  // PDF/Excel (TODO — não implementados de fato) ficaria um caminho de
+  // storage externo (S3 etc.) em vez do conteúdo inline.
+  fileContent String?
+  fileName    String?
+  sizeBytes   Int?
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@map("report_exports")
+}
+
+// ============================================================================
+// BOUNDED CONTEXT FUTURO — INTEGRAÇÃO MICROSOFT (Planner / Teams / Outlook)
+// ============================================================================
+// Este bloco é propositalmente isolado do restante do schema: nenhuma tabela
+// acima referencia estas entidades. Nenhum endpoint Microsoft/Graph/Entra ID
+// está documentado ainda — estas tabelas existem apenas como estrutura futura
+// e não têm conector implementado (ver SyncModule, que cobre somente BeeHome).
+// ============================================================================
+
+model Project {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId String?
+  name     String
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks     Task[]
+  campaigns Campaign[]
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@map("ms_projects")
+}
+
+model Campaign {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId  String?
+  name      String
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id])
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@map("ms_campaigns")
+}
+
+model Task {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId    String?
+  title       String
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
+  statusId    String?
+  status      TaskStatus?   @relation(fields: [statusId], references: [id])
+  priorityId  String?
+  priority    TaskPriority? @relation(fields: [priorityId], references: [id])
+  dueDate     DateTime?
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  assignees TaskAssignee[]
+  labels    TaskLabel[]
+
+  @@unique([tenantId, sourceId])
+  @@index([tenantId])
+  @@map("ms_tasks")
+}
+
+model TaskAssignee {
+  id       String @id @default(uuid())
+  tenantId String
+
+  taskId       String
+  task         Task   @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  userSourceId String
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@map("ms_task_assignees")
+}
+
+model TaskLabel {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId String?
+  name     String
+  taskId   String?
+  task     Task?   @relation(fields: [taskId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@map("ms_task_labels")
+}
+
+model TaskPriority {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId String?
+  name     String
+  rank     Int?
+
+  tasks Task[]
+
+  @@index([tenantId])
+  @@map("ms_task_priorities")
+}
+
+model TaskStatus {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  sourceId String?
+  name     String
+  isFinal  Boolean @default(false)
+
+  tasks Task[]
+
+  @@index([tenantId])
+  @@map("ms_task_statuses")
+}
+
+model WorkloadSnapshot {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  userSourceId String
+  periodStart  DateTime
+  periodEnd    DateTime
+  taskCount    Int      @default(0)
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+
+  @@index([tenantId])
+  @@map("ms_workload_snapshots")
+}
+
+model PlannerIntegration {
+  id       String @id @default(uuid())
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  connected   Boolean @default(false)
+  statusLabel String?
+  metadataJson Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("ms_planner_integrations")
+}

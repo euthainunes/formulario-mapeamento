@@ -1,0 +1,35 @@
+# Serviços de apoio para desenvolvimento local do backend. Não é necessário
+# validar que este arquivo sobe de fato neste sandbox (o daemon Docker pode
+# não ter permissão de rede/execução aqui) — ele existe para uso em uma
+# máquina de desenvolvimento normal.
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: beehome
+      POSTGRES_PASSWORD: beehome
+      POSTGRES_DB: beehome_backend
+    ports:
+      - '5432:5432'
+    volumes:
+      - beehome_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U beehome']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    ports:
+      - '6379:6379'
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  beehome_postgres_data:
