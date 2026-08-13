@@ -26,7 +26,7 @@ export default function ReconhecimentoPage() {
   const { data, isLoading, isError } = useRecognitionData(month, year);
 
   return (
-    <RouteGuard permission="recognition.view">
+    <RouteGuard permission="awards.view">
       <PageHeader
         title="Reconhecimento"
         description="Aniversariantes do mês e tempo de empresa — dados demonstrativos."

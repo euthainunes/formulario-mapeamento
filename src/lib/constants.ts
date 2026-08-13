@@ -32,8 +32,8 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Engajamento e Reações", href: "/engajamento", icon: Heart, permission: "engagement.view" },
   { label: "Pods", href: "/pods", icon: Boxes, permission: "pods.view" },
   { label: "Diretório e Perfis", href: "/diretorio", icon: IdCard, permission: "directory.view" },
-  { label: "Reconhecimento", href: "/reconhecimento", icon: Award, permission: "recognition.view" },
-  { label: "Relatórios e Exportações", href: "/relatorios", icon: FileBarChart, permission: "reports.view" },
+  { label: "Reconhecimento", href: "/reconhecimento", icon: Award, permission: "awards.view" },
+  { label: "Relatórios e Exportações", href: "/relatorios", icon: FileBarChart, permission: "report.view" },
   { label: "Insights com IA", href: "/insights-ia", icon: BrainCircuit, permission: "insights.view" },
   { label: "Gestão do Time", href: "/gestao-do-time", icon: UsersRound, permission: "team-management.view" },
   { label: "Administração", href: "/administracao/visao-geral", icon: Settings, permission: "admin.view" },
@@ -41,20 +41,20 @@ export const NAV_ITEMS: NavItem[] = [
 
 export const ADMIN_SUBNAV = [
   { label: "Visão geral", href: "/administracao/visao-geral", permission: "admin.view" as PermissionKey },
-  { label: "Usuários", href: "/administracao/usuarios", permission: "admin.users.manage" as PermissionKey },
+  { label: "Usuários", href: "/administracao/usuarios", permission: "user.manage" as PermissionKey },
   {
     label: "Perfis e permissões",
     href: "/administracao/perfis-permissoes",
-    permission: "admin.permissions.manage" as PermissionKey,
+    permission: "role.manage" as PermissionKey,
   },
   {
     label: "Integrações",
     href: "/administracao/integracoes",
-    permission: "admin.integrations.manage" as PermissionKey,
+    permission: "integration.manage" as PermissionKey,
   },
-  { label: "Sincronizações", href: "/administracao/sincronizacoes", permission: "admin.sync.view" as PermissionKey },
-  { label: "Alertas", href: "/administracao/alertas", permission: "admin.alerts.manage" as PermissionKey },
-  { label: "Auditoria", href: "/administracao/auditoria", permission: "admin.audit.view" as PermissionKey },
+  { label: "Sincronizações", href: "/administracao/sincronizacoes", permission: "sync.view" as PermissionKey },
+  { label: "Alertas", href: "/administracao/alertas", permission: "alert.manage" as PermissionKey },
+  { label: "Auditoria", href: "/administracao/auditoria", permission: "audit.view" as PermissionKey },
 ];
 
 export const ORG_FILTER_DISABLED_TOOLTIP = "Disponível após validação da integração";

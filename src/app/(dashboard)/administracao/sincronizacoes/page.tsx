@@ -51,7 +51,7 @@ export default function SincronizacoesPage() {
   const { data, isLoading, isError } = useSyncJobs();
 
   return (
-    <RouteGuard permission="admin.sync.view">
+    <RouteGuard permission="sync.view">
       <PageHeader title="Administração — Sincronizações" description="Histórico de execuções simuladas de sincronização com a Intranet BeeHome." />
       <AdminNav />
 

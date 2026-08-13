@@ -16,18 +16,20 @@ const PERMISSION_LABELS: Record<Exclude<PermissionKey, "*">, string> = {
   "engagement.view": "Ver Engajamento e Reações",
   "pods.view": "Ver Pods",
   "directory.view": "Ver Diretório e Perfis",
-  "recognition.view": "Ver Reconhecimento",
-  "reports.view": "Ver Relatórios",
-  "reports.export": "Exportar relatórios/dados",
+  "awards.view": "Ver Reconhecimento",
+  "report.view": "Ver Relatórios",
+  "report.export": "Exportar relatórios/dados",
   "insights.view": "Ver Insights com IA",
+  "insights.ask": "Perguntar à camada de Insights com IA",
+  "alert.view": "Ver alertas",
   "team-management.view": "Ver Gestão do Time",
   "admin.view": "Acessar Administração",
-  "admin.users.manage": "Gerenciar usuários",
-  "admin.permissions.manage": "Gerenciar perfis e permissões",
-  "admin.integrations.manage": "Gerenciar integrações",
-  "admin.sync.view": "Ver sincronizações",
-  "admin.alerts.manage": "Gerenciar alertas",
-  "admin.audit.view": "Ver auditoria",
+  "user.manage": "Gerenciar usuários",
+  "role.manage": "Gerenciar perfis e permissões",
+  "integration.manage": "Gerenciar integrações",
+  "sync.view": "Ver sincronizações",
+  "alert.manage": "Gerenciar alertas",
+  "audit.view": "Ver auditoria",
 };
 
 const ROLE_ORDER: RoleId[] = ["administradora", "gestao-comunicacao", "colaborador"];
@@ -36,7 +38,7 @@ export default function PerfisPermissoesPage() {
   const permissionKeys = Object.keys(PERMISSION_LABELS) as Exclude<PermissionKey, "*">[];
 
   return (
-    <RouteGuard permission="admin.permissions.manage">
+    <RouteGuard permission="role.manage">
       <PageHeader title="Administração — Perfis e Permissões" description="Matriz visual de permissões por perfil de acesso." />
       <AdminNav />
 

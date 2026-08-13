@@ -12,7 +12,7 @@ interface ExportButtonsProps {
 
 /**
  * Botões de exportação mockados: nenhuma exportação real acontece — apenas simulamos
- * o processamento e confirmamos com um toast, respeitando a permissão reports.export.
+ * o processamento e confirmamos com um toast, respeitando a permissão report.export.
  */
 export function ExportButtons({ label = "conteúdo", onExport }: ExportButtonsProps) {
   function handleExport(format: "csv" | "excel" | "pdf") {
@@ -21,7 +21,7 @@ export function ExportButtons({ label = "conteúdo", onExport }: ExportButtonsPr
   }
 
   return (
-    <Can permission="reports.export">
+    <Can permission="report.export">
       <div className="flex items-center gap-2">
         <Button variant="outline" size="sm" onClick={() => handleExport("csv")}>
           <FileText className="h-4 w-4" /> CSV

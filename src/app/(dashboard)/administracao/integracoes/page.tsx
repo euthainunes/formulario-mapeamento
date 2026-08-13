@@ -14,7 +14,7 @@ export default function IntegracoesPage() {
   const { data, isLoading, isError } = useIntegrations();
 
   return (
-    <RouteGuard permission="admin.integrations.manage">
+    <RouteGuard permission="integration.manage">
       <PageHeader
         title="Administração — Integrações"
         description="Status das integrações externas. Nesta fase, nenhuma integração está conectada de fato."

@@ -13,7 +13,7 @@ export default function AuditoriaPage() {
   const { data, isLoading, isError } = useAuditLog();
 
   return (
-    <RouteGuard permission="admin.audit.view">
+    <RouteGuard permission="audit.view">
       <PageHeader title="Administração — Auditoria" description="Trilha de ações realizadas na plataforma (dados simulados)." />
       <AdminNav />
 

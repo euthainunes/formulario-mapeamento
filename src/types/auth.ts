@@ -1,3 +1,10 @@
+// Estas strings foram alinhadas com o catálogo de permissões do backend
+// (backend/src/auth/permissions.constants.ts). "*" é uma convenção só do
+// mock do front-end para representar acesso total (o backend representa a
+// Administradora atribuindo a lista completa de permissões, sem coringa).
+// "team-management.view" e "admin.view" são exclusivas do front-end: gates
+// de agrupamento de UI (placeholder "Em breve" e visão geral de Admin) sem
+// dado real por trás ainda, então não existem no catálogo do backend.
 export type PermissionKey =
   | "*"
   | "dashboard.view"
@@ -8,18 +15,20 @@ export type PermissionKey =
   | "engagement.view"
   | "pods.view"
   | "directory.view"
-  | "recognition.view"
-  | "reports.view"
-  | "reports.export"
+  | "awards.view"
+  | "report.view"
+  | "report.export"
   | "insights.view"
+  | "insights.ask"
+  | "alert.view"
   | "team-management.view"
   | "admin.view"
-  | "admin.users.manage"
-  | "admin.permissions.manage"
-  | "admin.integrations.manage"
-  | "admin.sync.view"
-  | "admin.alerts.manage"
-  | "admin.audit.view";
+  | "user.manage"
+  | "role.manage"
+  | "integration.manage"
+  | "sync.view"
+  | "alert.manage"
+  | "audit.view";
 
 export type RoleId = "administradora" | "gestao-comunicacao" | "colaborador";
 

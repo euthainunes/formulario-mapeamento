@@ -12,7 +12,7 @@ export default function RelatoriosPage() {
   const { data, isLoading, isError } = useReportHistory();
 
   return (
-    <RouteGuard permission="reports.view">
+    <RouteGuard permission="report.view">
       <PageHeader
         title="Relatórios e Exportações"
         description="Gere relatórios com período, filtros e formato personalizados. O processamento é simulado."

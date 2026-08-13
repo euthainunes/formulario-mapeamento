@@ -14,7 +14,7 @@ export default function AdminAlertasPage() {
   const alerts = useAlerts();
 
   return (
-    <RouteGuard permission="admin.alerts.manage">
+    <RouteGuard permission="alert.manage">
       <PageHeader title="Administração — Alertas" description="Regras de alerta e histórico de alertas gerados." />
       <AdminNav />
 

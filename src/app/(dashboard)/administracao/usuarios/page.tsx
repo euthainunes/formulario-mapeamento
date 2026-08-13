@@ -50,7 +50,7 @@ export default function AdminUsuariosPage() {
   ];
 
   return (
-    <RouteGuard permission="admin.users.manage">
+    <RouteGuard permission="user.manage">
       <PageHeader title="Administração — Usuários" description="Gerencie os usuários com acesso à plataforma." />
       <AdminNav />
       <SectionCard title="Usuários cadastrados">
