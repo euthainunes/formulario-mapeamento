@@ -560,7 +560,7 @@ export function computeOperationScore(
   const unassignedRatio = openTasks.length > 0 ? unassignedOpenTasks(tasks).length / openTasks.length : 0;
   const blockedRatio = openTasks.length > 0 ? openTasks.filter((t) => t.isBlocked).length / openTasks.length : 0;
   const staleRatio = openTasks.length > 0 ? staleTasks(tasks, referenceDate).length / openTasks.length : 0;
-  const governancaScore = clamp(100 - (unassignedRatio * 40 + blockedRatio * 30 + staleRatio * 30) * 100);
+  const governancaScore = clamp(100 - (unassignedRatio * 40 + blockedRatio * 30 + staleRatio * 30));
   dimensions.push({
     key: "governanca",
     label: "Governança",
