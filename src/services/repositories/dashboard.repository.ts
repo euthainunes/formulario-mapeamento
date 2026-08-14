@@ -3,14 +3,13 @@ import { IDashboardRepository } from "@/services/contracts/dashboard.contract";
 import { MockDashboardRepository } from "@/services/mock/dashboard.mock";
 import { GlobalFilters } from "@/types/filters";
 import { ExecutiveDashboardData } from "@/types/dashboard";
+import { apiFetch, toQueryString } from "@/lib/client/api-fetch";
+import { filtersToQuery } from "@/lib/client/filters-to-query";
 
-/**
- * Implementação futura: chamada ao backend do próprio SaaS (nunca diretamente à BeeHome
- * a partir do navegador). Hoje é apenas um stub para deixar o ponto de extensão explícito.
- */
+/** Chama o Route Handler /api/dashboard (BFF), que repassa autenticado para GET /analytics/dashboard no backend. */
 class ApiDashboardRepository implements IDashboardRepository {
-  async getExecutiveDashboard(_filters: GlobalFilters): Promise<ExecutiveDashboardData> {
-    throw new Error("ApiDashboardRepository não implementado — integração real ainda não disponível.");
+  async getExecutiveDashboard(filters: GlobalFilters): Promise<ExecutiveDashboardData> {
+    return apiFetch<ExecutiveDashboardData>(`/api/dashboard${toQueryString(filtersToQuery(filters))}`);
   }
 }
 

@@ -1,13 +1,17 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, ArrowRight } from "lucide-react";
+import { ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
 import { MOCK_ACCOUNTS } from "@/mocks/users.mock";
 import { ROLES } from "@/lib/permissions";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { DEMO_BADGE_TEXT } from "@/lib/constants";
+import { appConfig } from "@/lib/app-config";
+import { ApiError } from "@/lib/client/api-fetch";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -20,6 +24,10 @@ export default function LoginPage() {
   function handleLogin(id: string) {
     loginAs(id);
     router.push("/");
+  }
+
+  if (appConfig.dataSource === "api") {
+    return <ApiLoginForm onSuccess={() => router.push("/")} />;
   }
 
   return (
@@ -66,6 +74,94 @@ export default function LoginPage() {
             ))}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+/** Formulário de login real (modo `NEXT_PUBLIC_APP_MODE=api`): chama POST /api/auth/login (BFF), que autentica contra o backend NestJS e seta o cookie httpOnly de sessão — o front nunca vê o token. */
+function ApiLoginForm({ onSuccess }: { onSuccess: () => void }) {
+  const { loginWithCredentials } = useAuth();
+  const [tenantSlug, setTenantSlug] = useState(process.env.NEXT_PUBLIC_DEFAULT_TENANT_SLUG ?? "");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  async function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      await loginWithCredentials(tenantSlug.trim(), email.trim(), password);
+      onSuccess();
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Não foi possível entrar. Verifique as credenciais e tente novamente.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-bg flex items-center justify-center px-4 py-10">
+      <div className="w-full max-w-sm">
+        <div className="flex flex-col items-center text-center mb-6">
+          <div className="h-12 w-12 rounded-xl bg-brand-primary flex items-center justify-center text-white text-xl font-bold mb-3">
+            B
+          </div>
+          <h1 className="text-lg font-semibold text-text-primary">Gestão da Comunicação</h1>
+          <p className="text-sm text-text-secondary">Inteligência da Intranet BeeHome</p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="rounded-card border border-border bg-surface p-5 shadow-sm space-y-3.5">
+          <div>
+            <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="tenantSlug">
+              Tenant
+            </label>
+            <Input
+              id="tenantSlug"
+              value={tenantSlug}
+              onChange={(e) => setTenantSlug(e.target.value)}
+              placeholder="beehome-brasil"
+              required
+              autoComplete="organization"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="email">
+              E-mail
+            </label>
+            <Input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="nome@empresa.com.br"
+              required
+              autoComplete="username"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="password">
+              Senha
+            </label>
+            <Input
+              id="password"
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              autoComplete="current-password"
+            />
+          </div>
+
+          {error && <p className="text-xs text-error">{error}</p>}
+
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+            Entrar
+          </Button>
+        </form>
       </div>
     </div>
   );

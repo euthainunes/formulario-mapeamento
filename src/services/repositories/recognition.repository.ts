@@ -1,10 +1,11 @@
 import { appConfig } from "@/lib/app-config";
 import { IRecognitionRepository, RecognitionData } from "@/services/contracts/recognition.contract";
 import { MockRecognitionRepository } from "@/services/mock/recognition.mock";
+import { apiFetch, toQueryString } from "@/lib/client/api-fetch";
 
 class ApiRecognitionRepository implements IRecognitionRepository {
-  async getRecognitionData(_month: number, _year: number): Promise<RecognitionData> {
-    throw new Error("ApiRecognitionRepository não implementado — integração real ainda não disponível.");
+  async getRecognitionData(month: number, year: number): Promise<RecognitionData> {
+    return apiFetch<RecognitionData>(`/api/recognition${toQueryString({ month, year })}`);
   }
 }
 
