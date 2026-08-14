@@ -24,15 +24,14 @@ function build(
   };
 }
 
+/**
+ * Bruna é a ÚNICA conta de login do SaaS — administradora da plataforma.
+ * As demais colaboradoras da Comunicação (ver src/mocks/team.mock.ts) não
+ * são usuárias do sistema: são pessoas cujos indicadores (audiência,
+ * conteúdo, Beezz, engajamento) a Bruna acompanha e analisa através dele.
+ */
 export const MOCK_ACCOUNTS: MockAccount[] = [
   build("Bruna Albuquerque", "administradora", "Comunicação", "Administradora da Plataforma"),
-  build("Thainá Nunes", "gestao-comunicacao", "Comunicação", "Analista de Comunicação"),
-  build("Mariana Souza", "gestao-comunicacao", "Comunicação", "Coordenadora de Comunicação"),
-  build("Hector Ramos", "gestao-comunicacao", "Comunicação", "Especialista de Conteúdo"),
-  build("Camila Duarte", "colaborador", "Marketing", "Analista de Marketing"),
-  build("Carol Ferraz", "colaborador", "Recursos Humanos", "Assistente de RH"),
-  build("Larissa Prado", "colaborador", "Tecnologia", "Analista de Sistemas"),
-  build("Sarah Lima", "gestao-comunicacao", "Comunicação", "Analista de Comunicação"),
 ];
 
 export function findAccountById(id: string): MockAccount | undefined {

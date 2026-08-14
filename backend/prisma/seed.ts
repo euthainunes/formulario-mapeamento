@@ -2,10 +2,18 @@
  * Seed de desenvolvimento do tenant real "BeeHome Brasil":
  *  - Catálogo de Permission (as 20 chaves fixas do sistema).
  *  - Papéis padrão (administradora, gestao-comunicacao, colaborador) com as
- *    permissões default (DEFAULT_ROLES).
+ *    permissões default (DEFAULT_ROLES) — só existem hoje como catálogo
+ *    disponível; nenhuma colaboradora além da Bruna tem um papel atribuído.
  *  - Company/Department/JobTitle/Team básicas.
- *  - As mesmas 8 colaboradoras do mock do front-end (src/mocks/users.mock.ts),
- *    distribuídas entre os 3 papéis, com senha real (bcrypt).
+ *  - Bruna é a ÚNICA usuária com login real (senha demo conhecida + papel
+ *    administradora). As demais colaboradoras da Comunicação (mesmos nomes
+ *    do mock do front-end, src/mocks/team.mock.ts) continuam existindo como
+ *    linhas de `User` — necessário porque News/Beezz/LoginEvent/AdmissionAward
+ *    referenciam autoria por usuária — mas SEM papel atribuído e com uma
+ *    senha aleatória nunca revelada, então não conseguem logar de fato nem
+ *    teriam qualquer permissão caso a senha fosse comprometida. Elas são
+ *    dado rastreado (as pessoas cujos indicadores a Bruna analisa), não
+ *    contas do SaaS.
  *  - Um volume pequeno mas real de News, Beezz, LoginEvent, Pod, Reaction,
  *    AdmissionAward e um AlertRule/Alert de exemplo — o suficiente para provar
  *    que o pipeline funciona ponta a ponta, sem tentar replicar o volume dos
@@ -14,6 +22,7 @@
  * Executar com: npx prisma db seed (requer DATABASE_URL apontando para um
  * Postgres real).
  */
+import { randomBytes } from 'crypto';
 import { PrismaClient, Device, Pod, News, Beezz } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import { PERMISSION_KEYS, PERMISSION_DESCRIPTIONS, DEFAULT_ROLES } from '../src/auth/permissions.constants';
@@ -45,20 +54,21 @@ function randomInt(min: number, max: number): number {
 
 interface SeedUserDef {
   name: string;
-  roleKey: string;
+  /** null = colaboradora rastreada, sem papel/login real (ver comentário no topo do arquivo). */
+  roleKey: string | null;
   department: string;
   jobTitle: string;
 }
 
 const USERS: SeedUserDef[] = [
   { name: 'Bruna Albuquerque', roleKey: 'administradora', department: 'Comunicação', jobTitle: 'Administradora da Plataforma' },
-  { name: 'Thainá Nunes', roleKey: 'gestao-comunicacao', department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
-  { name: 'Mariana Souza', roleKey: 'gestao-comunicacao', department: 'Comunicação', jobTitle: 'Coordenadora de Comunicação' },
-  { name: 'Hector Ramos', roleKey: 'gestao-comunicacao', department: 'Comunicação', jobTitle: 'Especialista de Conteúdo' },
-  { name: 'Camila Duarte', roleKey: 'colaborador', department: 'Marketing', jobTitle: 'Analista de Marketing' },
-  { name: 'Carol Ferraz', roleKey: 'colaborador', department: 'Recursos Humanos', jobTitle: 'Assistente de RH' },
-  { name: 'Larissa Prado', roleKey: 'colaborador', department: 'Tecnologia', jobTitle: 'Analista de Sistemas' },
-  { name: 'Sarah Lima', roleKey: 'gestao-comunicacao', department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
+  { name: 'Thainá Nunes', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
+  { name: 'Mariana Souza', roleKey: null, department: 'Comunicação', jobTitle: 'Coordenadora de Comunicação' },
+  { name: 'Hector Ramos', roleKey: null, department: 'Comunicação', jobTitle: 'Especialista de Conteúdo' },
+  { name: 'Camila Duarte', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
+  { name: 'Carol Ferraz', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
+  { name: 'Larissa Prado', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
+  { name: 'Sarah Lima', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
 ];
 
 async function main() {
@@ -134,8 +144,9 @@ async function main() {
   }
 
   // ---- Usuárias ----
-  const passwordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
-  const createdUsers: { id: string; email: string; name: string }[] = [];
+  const brunaPasswordHash = await bcrypt.hash(DEMO_PASSWORD, 10);
+  const trackedOnlyPasswordHash = await bcrypt.hash(randomBytes(32).toString('hex'), 10);
+  const createdUsers: { id: string; email: string; name: string; canLogin: boolean }[] = [];
 
   for (const u of USERS) {
     const email = `${u.name
@@ -145,11 +156,14 @@ async function main() {
       .replace(/\s+/g, '.')}@beehomebrasil.com.br`;
     const dept = departmentByName.get(u.department);
     const jt = jobTitleByName.get(u.jobTitle);
+    const canLogin = u.roleKey !== null;
+    const passwordHash = canLogin ? brunaPasswordHash : trackedOnlyPasswordHash;
 
     const user = await prisma.user.upsert({
       where: { tenantId_email: { tenantId: tenant.id, email } },
       update: {
         name: u.name,
+        passwordHash,
         active: true,
         companyId: company.id,
         departmentId: dept?.id,
@@ -172,24 +186,35 @@ async function main() {
       },
     });
 
-    const role = roleByKey.get(u.roleKey);
+    const role = u.roleKey ? roleByKey.get(u.roleKey) : undefined;
     if (role) {
       await prisma.userRole.upsert({
         where: { userId_roleId: { userId: user.id, roleId: role.id } },
         update: {},
         create: { tenantId: tenant.id, userId: user.id, roleId: role.id },
       });
+    } else {
+      // Garante que nenhum papel fique preso de uma execução anterior do
+      // seed (idempotência) para quem não deve ter acesso de login.
+      await prisma.userRole.deleteMany({ where: { userId: user.id } });
     }
 
-    createdUsers.push({ id: user.id, email, name: u.name });
+    createdUsers.push({ id: user.id, email, name: u.name, canLogin });
   }
 
+  const loginableUsers = createdUsers.filter((u) => u.canLogin);
   // eslint-disable-next-line no-console
-  console.log(`Tenant "${tenant.name}" (slug: ${TENANT_SLUG}) — ${createdUsers.length} usuárias prontas. Senha demo: "${DEMO_PASSWORD}" para todas.`);
-  for (const u of createdUsers) {
+  console.log(
+    `Tenant "${tenant.name}" (slug: ${TENANT_SLUG}) — ${createdUsers.length} colaboradoras no total, ${loginableUsers.length} com login real. Senha demo: "${DEMO_PASSWORD}".`,
+  );
+  for (const u of loginableUsers) {
     // eslint-disable-next-line no-console
     console.log(`  - ${u.name}: ${u.email}`);
   }
+  // eslint-disable-next-line no-console
+  console.log(
+    `As demais ${createdUsers.length - loginableUsers.length} colaboradoras existem apenas como dado rastreado (autoria de conteúdo, acessos, reconhecimento) — sem papel e sem senha conhecida.`,
+  );
 
   // ---- Volume de dados (idempotente: só gera se ainda não houver News) ----
   const existingNews = await prisma.news.count({ where: { tenantId: tenant.id } });

@@ -1,7 +1,7 @@
 import { ContentItem, ContentType } from "@/types/content";
 import { seededRandom } from "@/lib/utils";
 import { isoDate, REFERENCE_TODAY } from "@/lib/date-range";
-import { MOCK_ACCOUNTS } from "./users.mock";
+import { COMMUNICATION_TEAM } from "./team.mock";
 
 const TITLES: { title: string; type: ContentType }[] = [
   { title: "Novo plano de saúde entra em vigor em setembro", type: "noticia" },
@@ -62,7 +62,7 @@ function buildNews(): ContentItem[] {
       title: t.title,
       type: t.type,
       publishedAt: isoDate(date),
-      author: MOCK_ACCOUNTS[idx % MOCK_ACCOUNTS.length].name,
+      author: COMMUNICATION_TEAM[idx % COMMUNICATION_TEAM.length].name,
       views,
       likes,
       comments,

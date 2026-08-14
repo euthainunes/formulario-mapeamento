@@ -15,19 +15,18 @@ export const MOCK_ADMIN_USERS: AdminUser[] = MOCK_ACCOUNTS.map((acc, idx) => ({
   email: acc.email,
   role: ROLES[acc.role].name,
   department: acc.department,
-  active: idx !== MOCK_ACCOUNTS.length - 1,
+  active: true,
   lastLogin: daysAgoIso(idx + 1),
 }));
 
 export const MOCK_AUDIT_LOG: AuditLogEntry[] = [
-  { id: "audit-1", actor: "Bruna Albuquerque", action: "Ativou usuária", target: "Sarah Lima", timestamp: daysAgoIso(1) },
-  { id: "audit-2", actor: "Mariana Souza", action: "Gerou relatório", target: "Relatório de Audiência — Departamento Comunicação", timestamp: daysAgoIso(6) },
-  { id: "audit-3", actor: "Bruna Albuquerque", action: "Atualizou regra de alerta", target: "Queda de acessos diários", timestamp: daysAgoIso(9) },
-  { id: "audit-4", actor: "Sistema", action: "Sincronização concluída com falha simulada", target: "Intranet BeeHome", timestamp: daysAgoIso(3) },
-  { id: "audit-5", actor: "Hector Ramos", action: "Publicou conteúdo", target: "Guia rápido: como usar os novos Pods", timestamp: daysAgoIso(11) },
-  { id: "audit-6", actor: "Bruna Albuquerque", action: "Alterou perfil de permissão", target: "Gestão de Comunicação", timestamp: daysAgoIso(30) },
-  { id: "audit-7", actor: "Thainá Nunes", action: "Exportou relatório", target: "Relatório Executivo — Julho 2026", timestamp: daysAgoIso(14) },
-  { id: "audit-8", actor: "Sistema", action: "Alerta gerado automaticamente", target: "Queda de 18% nos acessos da última semana", timestamp: daysAgoIso(1) },
+  { id: "audit-1", actor: "Bruna Albuquerque", action: "Gerou relatório", target: "Relatório de Audiência — Departamento Comunicação", timestamp: daysAgoIso(6) },
+  { id: "audit-2", actor: "Bruna Albuquerque", action: "Atualizou regra de alerta", target: "Queda de acessos diários", timestamp: daysAgoIso(9) },
+  { id: "audit-3", actor: "Sistema", action: "Sincronização concluída com falha simulada", target: "Intranet BeeHome", timestamp: daysAgoIso(3) },
+  { id: "audit-4", actor: "Bruna Albuquerque", action: "Alterou status de alerta", target: "Queda de utilização — Pod Financeiro", timestamp: daysAgoIso(11) },
+  { id: "audit-5", actor: "Bruna Albuquerque", action: "Alterou perfil de permissão", target: "Gestão de Comunicação", timestamp: daysAgoIso(30) },
+  { id: "audit-6", actor: "Bruna Albuquerque", action: "Exportou relatório", target: "Relatório Executivo — Julho 2026", timestamp: daysAgoIso(14) },
+  { id: "audit-7", actor: "Sistema", action: "Alerta gerado automaticamente", target: "Queda de 18% nos acessos da última semana", timestamp: daysAgoIso(1) },
 ];
 
 export const MOCK_INTEGRATIONS: IntegrationStatus[] = [

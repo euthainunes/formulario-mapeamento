@@ -1,29 +1,25 @@
 import { test, expect } from "@playwright/test";
 import { loginAsMock } from "./helpers";
 
-test.describe("RBAC básico — perfil Colaborador", () => {
-  test("Camila (Colaborador) não vê itens administrativos/relatórios no menu", async ({ page }) => {
-    await loginAsMock(page, "Camila Duarte");
+test.describe("Login único — apenas Bruna é administradora", () => {
+  test("a tela de login oferece somente a conta da Bruna, sem outras colaboradoras", async ({ page }) => {
+    await page.goto("/login");
 
-    await expect(page.getByRole("heading", { name: "Dashboard Executivo" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Bruna Albuquerque" })).toBeVisible();
 
-    // Itens permitidos ao perfil Colaborador continuam visíveis.
-    await expect(page.getByRole("link", { name: "Conteúdos e Notícias" })).toBeVisible();
-    await expect(page.getByRole("link", { name: "Pods" })).toBeVisible();
-
-    // Itens que exigem permissões que Colaborador não tem (report.view, admin.view,
-    // audience.view, access.view, user.manage, ...) não devem aparecer no menu.
-    await expect(page.getByRole("link", { name: "Relatórios e Exportações" })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "Administração" })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "Pessoas e Audiência" })).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "Acessos", exact: true })).toHaveCount(0);
+    // As colaboradoras da Comunicação são pessoas rastreadas nos indicadores,
+    // não contas do sistema — não devem aparecer como opção de login.
+    await expect(page.getByRole("button", { name: "Thainá Nunes" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Mariana Souza" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Camila Duarte" })).toHaveCount(0);
   });
 
-  test("Camila (Colaborador) acessando /relatorios diretamente vê a tela de acesso restrito", async ({ page }) => {
-    await loginAsMock(page, "Camila Duarte");
+  test("Bruna (administradora) vê todos os módulos, incluindo Administração", async ({ page }) => {
+    await loginAsMock(page, "Bruna Albuquerque");
 
-    await page.goto("/relatorios");
-
-    await expect(page.getByText("Acesso não disponível para o seu perfil")).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Dashboard Executivo" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Relatórios e Exportações" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Administração" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Pessoas e Audiência" })).toBeVisible();
   });
 });

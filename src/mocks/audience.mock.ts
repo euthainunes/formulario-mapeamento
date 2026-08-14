@@ -3,6 +3,7 @@ import { COMPANIES, DEPARTMENTS, JOB_TITLES, TEAMS } from "@/lib/constants";
 import { seededRandom, initialsFromName } from "@/lib/utils";
 import { subDays } from "date-fns";
 import { REFERENCE_TODAY, isoDate } from "@/lib/date-range";
+import { COMMUNICATION_TEAM } from "./team.mock";
 
 const FIRST_NAMES = [
   "Ana", "Bruno", "Carla", "Diego", "Elaine", "Fábio", "Gabriela", "Henrique",
@@ -72,7 +73,7 @@ function buildCollaborators(count: number): Collaborator[] {
   return list;
 }
 
-export const MOCK_COLLABORATORS: Collaborator[] = buildCollaborators(180);
+export const MOCK_COLLABORATORS: Collaborator[] = [...COMMUNICATION_TEAM, ...buildCollaborators(173)];
 
 export function activeAsOf(dateIso: string): Collaborator[] {
   return MOCK_COLLABORATORS.filter((c) => c.lastActivity <= dateIso);

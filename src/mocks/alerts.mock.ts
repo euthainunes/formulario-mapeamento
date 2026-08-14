@@ -27,7 +27,7 @@ export const MOCK_ALERT_RULES: AlertRule[] = [
     threshold: 30,
     severity: "info",
     active: true,
-    createdBy: "Mariana Souza",
+    createdBy: "Bruna Albuquerque",
     createdAt: daysAgoIso(95),
   },
   {
@@ -49,7 +49,7 @@ export const MOCK_ALERT_RULES: AlertRule[] = [
     threshold: 20,
     severity: "warning",
     active: false,
-    createdBy: "Thainá Nunes",
+    createdBy: "Bruna Albuquerque",
     createdAt: daysAgoIso(60),
   },
 ];
@@ -96,8 +96,8 @@ export const MOCK_ALERTS: Alert[] = [
     metric: "Curtidas + comentários por publicação",
     history: [
       { id: "h-3-1", status: "novo", changedBy: "Sistema", changedAt: daysAgoIso(12) },
-      { id: "h-3-2", status: "em_analise", changedBy: "Hector Ramos", changedAt: daysAgoIso(10) },
-      { id: "h-3-3", status: "resolvido", changedBy: "Hector Ramos", changedAt: daysAgoIso(9), note: "Reforço de divulgação feito." },
+      { id: "h-3-2", status: "em_analise", changedBy: "Bruna Albuquerque", changedAt: daysAgoIso(10) },
+      { id: "h-3-3", status: "resolvido", changedBy: "Bruna Albuquerque", changedAt: daysAgoIso(9), note: "Reforço de divulgação feito." },
     ],
   },
   {
@@ -112,7 +112,7 @@ export const MOCK_ALERTS: Alert[] = [
     metric: "Total de acessos",
     history: [
       { id: "h-4-1", status: "novo", changedBy: "Sistema", changedAt: daysAgoIso(45) },
-      { id: "h-4-2", status: "ignorado", changedBy: "Mariana Souza", changedAt: daysAgoIso(44), note: "Período de feriado prolongado, esperado." },
+      { id: "h-4-2", status: "ignorado", changedBy: "Bruna Albuquerque", changedAt: daysAgoIso(44), note: "Período de feriado prolongado, esperado." },
     ],
   },
 ];
