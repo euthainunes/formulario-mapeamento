@@ -23,6 +23,38 @@ const STATUS_LABEL: Record<ReportStatus, string> = {
   falha: "Falha",
 };
 
+/** Botão de download da linha do histórico. Em modo `api`, `item.downloadUrl` aponta para o Route Handler que serve o arquivo real (CSV/Excel/PDF) gerado pelo backend; em modo mock permanece um download simulado (toast), sem gerar arquivo de verdade. */
+function DownloadAction({ item }: { item: ReportHistoryItem }) {
+  const disabled = item.status !== "concluido";
+
+  if (item.downloadUrl) {
+    return (
+      <a
+        href={item.downloadUrl}
+        title="Baixar relatório"
+        aria-disabled={disabled}
+        className={`inline-flex items-center justify-center rounded-lg p-1.5 text-text-primary transition-colors hover:bg-black/5 ${
+          disabled ? "pointer-events-none opacity-50" : ""
+        }`}
+      >
+        <Download className="h-4 w-4" />
+      </a>
+    );
+  }
+
+  return (
+    <Button
+      variant="ghost"
+      size="sm"
+      disabled={disabled}
+      onClick={() => toast(`Download simulado de "${item.name}" (ambiente demonstrativo).`, "success")}
+      title="Baixar (simulado)"
+    >
+      <Download className="h-4 w-4" />
+    </Button>
+  );
+}
+
 export function ReportHistoryTable({ items }: { items: ReportHistoryItem[] }) {
   const [preview, setPreview] = useState<ReportHistoryItem | null>(null);
 
@@ -53,15 +85,7 @@ export function ReportHistoryTable({ items }: { items: ReportHistoryItem[] }) {
           <Button variant="ghost" size="sm" onClick={() => setPreview(row.original)} title="Ver detalhes">
             <Eye className="h-4 w-4" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={row.original.status !== "concluido"}
-            onClick={() => toast(`Download simulado de "${row.original.name}" (ambiente demonstrativo).`, "success")}
-            title="Baixar (simulado)"
-          >
-            <Download className="h-4 w-4" />
-          </Button>
+          <DownloadAction item={row.original} />
         </div>
       ),
     },

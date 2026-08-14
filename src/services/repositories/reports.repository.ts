@@ -28,6 +28,8 @@ function adaptReport(raw: RawReport): ReportHistoryItem {
     createdAt: raw.createdAt,
     status: raw.status,
     finishedAt: raw.finishedAt ?? undefined,
+    // Download real (backend serve o arquivo gravado em disco — ver ReportsController.download) — só faz sentido oferecer quando o relatório terminou de processar.
+    downloadUrl: raw.status === "concluido" ? `/api/reports/${raw.id}/download` : undefined,
     metadata:
       raw.metadataJson ?? {
         period: raw.filtersJson?.dateRange ?? { from: "", to: "" },

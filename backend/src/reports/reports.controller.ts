@@ -1,5 +1,6 @@
-import { Controller, Get, NotFoundException, Param, Post, Body } from '@nestjs/common';
+import { Controller, Get, NotFoundException, Param, Post, Body, Res } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { ReportsService } from './reports.service';
 import { GenerateReportDto } from './dto/report.dto';
 import { RequirePermissions } from '../common/decorators/require-permissions.decorator';
@@ -30,5 +31,18 @@ export class ReportsController {
   @RequirePermissions('report.export')
   generate(@Body() dto: GenerateReportDto, @CurrentUser() user: AuthenticatedUser) {
     return this.reportsService.generate(dto, user.userId);
+  }
+
+  @Get(':id/download')
+  @RequirePermissions('report.view', 'report.export')
+  async download(@Param('id') id: string, @Res() res: Response) {
+    const { buffer, fileName, mimeType } = await this.reportsService.getDownload(id);
+    const asciiFallback = fileName.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x20-\x7E]/g, '_');
+    res.set({
+      'Content-Type': mimeType,
+      'Content-Disposition': `attachment; filename="${asciiFallback}"; filename*=UTF-8''${encodeURIComponent(fileName)}`,
+      'Content-Length': String(buffer.byteLength),
+    });
+    res.send(buffer);
   }
 }

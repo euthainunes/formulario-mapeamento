@@ -7,6 +7,7 @@ import { StateWrapper } from "@/components/shared/state-wrapper";
 import { ReportForm } from "@/components/reports/report-form";
 import { ReportHistoryTable } from "@/components/reports/report-history-table";
 import { useReportHistory } from "@/hooks/use-report-export";
+import { appConfig } from "@/lib/app-config";
 
 export default function RelatoriosPage() {
   const { data, isLoading, isError } = useReportHistory();
@@ -15,7 +16,11 @@ export default function RelatoriosPage() {
     <RouteGuard permission="report.view">
       <PageHeader
         title="Relatórios e Exportações"
-        description="Gere relatórios com período, filtros e formato personalizados. O processamento é simulado."
+        description={
+          appConfig.mockMode
+            ? "Gere relatórios com período, filtros e formato personalizados. O processamento é simulado."
+            : "Gere relatórios com período, filtros e formato personalizados. Os arquivos (CSV, Excel ou PDF) são gerados de verdade e ficam disponíveis para download após a conclusão."
+        }
       />
 
       <div className="space-y-5">

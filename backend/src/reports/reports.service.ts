@@ -3,6 +3,8 @@ import { stringify } from 'csv-stringify/sync';
 import { PrismaService } from '../prisma/prisma.service';
 import { TenantContextService } from '../tenant/tenant-context.service';
 import { GenerateReportDto } from './dto/report.dto';
+import { generateExcelBuffer, generatePdfBuffer, ReportFileMetadata } from './generators/report-file-generators';
+import { ReportFileStorageService, mimeTypeForFormat } from './report-file-storage.service';
 
 const REPORT_LABELS: Record<string, string> = {
   audiencia: 'Audiência',
@@ -22,11 +24,25 @@ const METRIC_DEFINITIONS_BY_TYPE: Record<string, { metric: string; definition: s
   executivo: [{ metric: 'dashboard.kpis', definition: 'Conjunto consolidado de KPIs de todos os domínios' }],
 };
 
+/** Versão da definição das métricas derivadas expostas nos relatórios — ver KpiCardDto.version (todo KPI do sistema está hoje na versão 1 de sua fórmula). */
+const REPORT_FORMULA_VERSION = 1;
+
+function filtersLabel(filters: { company: string | null; department: string | null; jobTitle: string | null; team: string | null }): string {
+  const parts = [
+    filters.company ? `Empresa: ${filters.company}` : null,
+    filters.department ? `Departamento: ${filters.department}` : null,
+    filters.jobTitle ? `Cargo: ${filters.jobTitle}` : null,
+    filters.team ? `Time: ${filters.team}` : null,
+  ].filter(Boolean);
+  return parts.length > 0 ? parts.join(' · ') : 'Nenhum filtro adicional aplicado';
+}
+
 @Injectable()
 export class ReportsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenantContext: TenantContextService,
+    private readonly fileStorage: ReportFileStorageService,
   ) {}
 
   private tenantId(): string {
@@ -60,31 +76,49 @@ export class ReportsService {
 
     try {
       const rows = await this.collectRows(dto);
-      const csvContent = stringify(rows, { header: true });
+      const finishedAt = new Date();
+      const lastSyncConsidered = await this.lastSyncTimestamp();
+      const tenant = await this.prisma.tenant.findUnique({ where: { id: this.tenantId() } });
 
-      let fileContent = csvContent;
-      let metadataNote: string | undefined;
-      if (dto.format !== 'csv') {
-        // TODO documentado: geração real de PDF/Excel ainda não implementada.
-        // Por ora, entregamos o mesmo conteúdo tabular como CSV, sinalizando
-        // isso explicitamente em metadata para não fingir um arquivo binário real.
-        metadataNote = `Geração real de arquivo .${dto.format} pendente (TODO). Conteúdo fornecido em formato CSV como placeholder funcional.`;
+      const fileMeta: ReportFileMetadata = {
+        reportName: report.name,
+        tenantName: tenant?.name ?? this.tenantId(),
+        typeLabel: REPORT_LABELS[dto.type] ?? dto.type,
+        period: { from: dto.from, to: dto.to },
+        filtersLabel: filtersLabel(filters),
+        generatedAt: finishedAt.toISOString(),
+        lastSyncConsidered,
+        dataSource: 'Intranet BeeHome (via MetricSnapshot/normalizado)',
+        metricDefinitions: METRIC_DEFINITIONS_BY_TYPE[dto.type] ?? [],
+        formulaVersion: REPORT_FORMULA_VERSION,
+      };
+
+      const fileExport = await this.prisma.reportExport.create({
+        data: { tenantId: this.tenantId(), reportId: report.id, format: dto.format },
+      });
+
+      let content: Buffer | string;
+      if (dto.format === 'excel') {
+        content = await generateExcelBuffer(rows, fileMeta);
+      } else if (dto.format === 'pdf') {
+        content = await generatePdfBuffer(rows, fileMeta);
+      } else {
+        content = stringify(rows, { header: true });
       }
 
-      const fileName = `${dto.type}-${dto.from}-a-${dto.to}.${dto.format === 'csv' ? 'csv' : 'csv'}`;
+      const fileNameBase = `${dto.type}-${dto.from}-a-${dto.to}`;
+      const { relativePath, sizeBytes } = await this.fileStorage.save(this.tenantId(), fileExport.id, dto.format, content);
 
-      await this.prisma.reportExport.create({
+      await this.prisma.reportExport.update({
+        where: { id: fileExport.id },
         data: {
-          tenantId: this.tenantId(),
-          reportId: report.id,
-          format: dto.format,
-          fileContent,
-          fileName,
-          sizeBytes: Buffer.byteLength(fileContent, 'utf-8'),
+          fileReference: relativePath,
+          fileName: `${fileNameBase}.${relativePath.split('.').pop()}`,
+          mimeType: mimeTypeForFormat(dto.format),
+          sizeBytes,
         },
       });
 
-      const finishedAt = new Date();
       const updated = await this.prisma.report.update({
         where: { id: report.id },
         data: {
@@ -94,10 +128,10 @@ export class ReportsService {
             period: { from: dto.from, to: dto.to },
             filtersApplied: JSON.stringify(filters),
             generatedAt: finishedAt.toISOString(),
-            lastSyncConsidered: await this.lastSyncTimestamp(),
+            lastSyncConsidered,
             dataSource: 'Intranet BeeHome (via MetricSnapshot/normalizado)',
             metricDefinitions: METRIC_DEFINITIONS_BY_TYPE[dto.type] ?? [],
-            note: metadataNote,
+            formulaVersion: REPORT_FORMULA_VERSION,
           },
         },
         include: { exports: true },
@@ -111,6 +145,27 @@ export class ReportsService {
       });
       throw err;
     }
+  }
+
+  /** Localiza a exportação mais recente de um relatório concluído e lê o arquivo gravado em disco para servir no endpoint de download. */
+  async getDownload(reportId: string): Promise<{ buffer: Buffer; fileName: string; mimeType: string }> {
+    const report = await this.prisma.report.findUnique({
+      where: { id: reportId },
+      include: { exports: { orderBy: { createdAt: 'desc' }, take: 1 } },
+    });
+    if (!report) throw new NotFoundException('Relatório não encontrado');
+
+    const fileExport = report.exports[0];
+    if (!fileExport?.fileReference) {
+      throw new NotFoundException('Arquivo do relatório ainda não está disponível (relatório pode estar processando ou ter falhado).');
+    }
+
+    const buffer = await this.fileStorage.read(fileExport.fileReference);
+    return {
+      buffer,
+      fileName: fileExport.fileName ?? `${report.name}.${fileExport.format}`,
+      mimeType: fileExport.mimeType ?? mimeTypeForFormat(fileExport.format),
+    };
   }
 
   private async lastSyncTimestamp(): Promise<string> {

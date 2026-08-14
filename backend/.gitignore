@@ -3,3 +3,7 @@ dist/
 coverage/
 .env
 *.env.local
+
+# Arquivos de relatório gerados em disco (ver ReportsService/storage/reports)
+storage/reports/*
+!storage/reports/.gitkeep

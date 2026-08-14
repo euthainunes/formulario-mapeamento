@@ -74,6 +74,53 @@ export async function proxyToBackend(request: NextRequest, backendPath: string, 
   });
 }
 
+/**
+ * Proxy autenticado para downloads binários (PDF/Excel/CSV de relatórios).
+ * Difere de `proxyToBackend` por nunca passar a resposta por `.text()` —
+ * isso corromperia bytes de um .xlsx/.pdf real — repassando o `ArrayBuffer`
+ * bruto e os headers `Content-Type`/`Content-Disposition` do backend.
+ */
+export async function proxyBinaryDownload(backendPath: string): Promise<NextResponse> {
+  const token = await getAuthToken();
+  if (!token) {
+    return NextResponse.json({ statusCode: 401, message: "Sessão expirada ou inexistente. Faça login novamente." }, { status: 401 });
+  }
+
+  const url = new URL(backendPath, BACKEND_URL);
+
+  let backendResponse: Response;
+  try {
+    backendResponse = await fetch(url.toString(), {
+      method: "GET",
+      headers: { Authorization: `Bearer ${token}` },
+      cache: "no-store",
+    });
+  } catch {
+    return NextResponse.json(
+      {
+        statusCode: 502,
+        message: `Não foi possível conectar ao backend em ${BACKEND_URL}. Verifique se o serviço está em execução (ver README.md).`,
+      },
+      { status: 502 },
+    );
+  }
+
+  if (!backendResponse.ok) {
+    const text = await backendResponse.text();
+    const contentType = backendResponse.headers.get("content-type") ?? "application/json";
+    return new NextResponse(text, { status: backendResponse.status, headers: { "content-type": contentType } });
+  }
+
+  const buffer = await backendResponse.arrayBuffer();
+  const headers: Record<string, string> = {
+    "content-type": backendResponse.headers.get("content-type") ?? "application/octet-stream",
+  };
+  const disposition = backendResponse.headers.get("content-disposition");
+  if (disposition) headers["content-disposition"] = disposition;
+
+  return new NextResponse(buffer, { status: backendResponse.status, headers });
+}
+
 /** Chamada servidor-a-servidor "crua" ao backend, para os handlers de auth (login/refresh), que não devem passar pelo proxy genérico pois lidam com o cookie diretamente. */
 export async function callBackend(path: string, init: RequestInit): Promise<Response> {
   const url = new URL(path, BACKEND_URL);

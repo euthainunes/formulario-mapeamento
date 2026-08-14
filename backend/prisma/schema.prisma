@@ -672,12 +672,16 @@ model ReportExport {
   reportId String
   report   Report @relation(fields: [reportId], references: [id], onDelete: Cascade)
   format   String
-  // Conteúdo do arquivo gerado. Para CSV guardamos o texto pronto; para
-  // PDF/Excel (TODO — não implementados de fato) ficaria um caminho de
-  // storage externo (S3 etc.) em vez do conteúdo inline.
+  // Conteúdo do arquivo gerado inline (só usado como fallback histórico;
+  // não é mais escrito por gerações novas — ver fileReference).
   fileContent String?
-  fileName    String?
-  sizeBytes   Int?
+  // Caminho, relativo à raiz do backend, do arquivo real gravado em disco
+  // (ver ReportsService/report-file-storage) — ex: "storage/reports/<tenantId>/<exportId>.pdf".
+  // É o que o endpoint de download usa para servir o arquivo.
+  fileReference String?
+  mimeType      String?
+  fileName      String?
+  sizeBytes     Int?
 
   createdAt DateTime @default(now())
 

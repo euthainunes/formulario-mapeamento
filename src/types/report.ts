@@ -30,6 +30,8 @@ export interface ReportHistoryItem {
   createdAt: string;
   status: ReportStatus;
   finishedAt?: string;
+  /** URL de download real do arquivo gerado (só definido em modo `api`, quando o relatório está `concluido`; em modo mock o download continua simulado). */
+  downloadUrl?: string;
   metadata: {
     period: { from: string; to: string };
     filtersApplied: string;
