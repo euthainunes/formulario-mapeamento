@@ -35,7 +35,18 @@ export const PERMISSION_KEYS = [
   'settings.manage',
 ] as const;
 
-export type PermissionKey = (typeof PERMISSION_KEYS)[number];
+/**
+ * Permissões de nível PLATAFORMA — nunca concedidas a um papel de tenant
+ * (nem mesmo "administradora", que dá acesso a `[...PERMISSION_KEYS]`: essa
+ * lista é deliberadamente mantida separada de `PERMISSION_KEYS` para que o
+ * spread nunca as inclua). Hoje só existem para as poucas rotas
+ * genuinamente cross-tenant (`TenantController`: provisionar/listar/excluir
+ * tenants). Nenhum papel do seed as concede — só podem ser atribuídas
+ * manualmente a uma conta operada pela equipe da plataforma.
+ */
+export const PLATFORM_PERMISSION_KEYS = ['platform.superadmin'] as const;
+
+export type PermissionKey = (typeof PERMISSION_KEYS)[number] | (typeof PLATFORM_PERMISSION_KEYS)[number];
 
 export const PERMISSION_DESCRIPTIONS: Record<PermissionKey, string> = {
   'dashboard.view': 'Visualizar o dashboard executivo',
@@ -59,6 +70,7 @@ export const PERMISSION_DESCRIPTIONS: Record<PermissionKey, string> = {
   'sync.view': 'Visualizar status/histórico de sincronização',
   'audit.view': 'Visualizar log de auditoria',
   'settings.manage': 'Gerenciar configurações do tenant',
+  'platform.superadmin': 'Provisionar, listar ou excluir tenants na plataforma (nível operador, não concedida a nenhum papel de tenant)',
 };
 
 /** Papéis padrão criados no seed de cada tenant novo. */

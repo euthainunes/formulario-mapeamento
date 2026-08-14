@@ -5,6 +5,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { JwtStrategy } from './jwt.strategy';
 import { UsersModule } from '../users/users.module';
+import { requireJwtSecret } from './jwt-secret.util';
 
 @Module({
   imports: [
@@ -12,7 +13,7 @@ import { UsersModule } from '../users/users.module';
     PassportModule,
     JwtModule.registerAsync({
       useFactory: () => ({
-        secret: process.env.JWT_SECRET || 'dev-secret-change-me',
+        secret: requireJwtSecret(),
         signOptions: { expiresIn: process.env.JWT_EXPIRES_IN || '1h' },
       }),
     }),
