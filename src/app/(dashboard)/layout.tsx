@@ -7,17 +7,22 @@ import { Topbar } from "@/components/layout/topbar";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, hasHydrated } = useAuth();
   const router = useRouter();
 
   useEffect(() => {
-    if (!isAuthenticated) router.replace("/login");
-  }, [isAuthenticated, router]);
+    // Só decide redirecionar depois que sabemos de verdade se há uma sessão
+    // (ver hasHydrated em auth.store.ts) — antes disso, `isAuthenticated`
+    // falso só significa "ainda carregando", não "sem sessão".
+    if (hasHydrated && !isAuthenticated) router.replace("/login");
+  }, [hasHydrated, isAuthenticated, router]);
 
-  if (!isAuthenticated) {
+  if (!hasHydrated || !isAuthenticated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-bg">
-        <p className="text-sm text-text-secondary">Redirecionando para o login...</p>
+        <p className="text-sm text-text-secondary">
+          {hasHydrated ? "Redirecionando para o login..." : "Carregando..."}
+        </p>
       </div>
     );
   }

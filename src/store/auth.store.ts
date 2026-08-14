@@ -38,6 +38,17 @@ interface AuthState {
   user: AuthUser | null;
   /** Permissões efetivas vindas do backend (preenchido apenas em modo "api"). Quando presente, é a fonte de verdade de `can()` — substitui o mapeamento por RoleId usado no modo mock. */
   apiPermissions: PermissionKey[] | null;
+  /**
+   * Fica `false` até o zustand/persist terminar de reidratar `user` a partir
+   * do localStorage. Enquanto isso, `user === null` não significa "não
+   * autenticado" — significa "ainda não sabemos". Componentes que decidem
+   * redirecionar para /login com base em `isAuthenticated` DEVEM esperar
+   * `hasHydrated === true` antes de agir, senão qualquer navegação direta
+   * (F5, link direto, `page.goto` em teste) numa rota protegida dispara uma
+   * ida para /login seguida de volta para "/", perdendo a rota original.
+   */
+  hasHydrated: boolean;
+  setHasHydrated: (value: boolean) => void;
   loginAs: (userId: string) => void;
   /** Login real (modo "api"): chama POST /api/auth/login (BFF), que autentica contra o backend e seta o cookie httpOnly de sessão. Lança em caso de credenciais inválidas. */
   loginWithCredentials: (tenantSlug: string, email: string, password: string) => Promise<void>;
@@ -50,6 +61,8 @@ export const useAuthStore = create<AuthState>()(
     (set, get) => ({
       user: null,
       apiPermissions: null,
+      hasHydrated: false,
+      setHasHydrated: (value: boolean) => set({ hasHydrated: value }),
 
       loginAs: (userId: string) => {
         const account = MOCK_ACCOUNTS.find((a) => a.id === userId);
@@ -113,6 +126,10 @@ export const useAuthStore = create<AuthState>()(
       // permissões), nunca um token — em modo "api" o JWT real fica somente
       // no cookie httpOnly (inacessível a este código), setado pelo Route
       // Handler /api/auth/login. Ver appConfig.dataSource / README.md.
+      partialize: (state) => ({ user: state.user, apiPermissions: state.apiPermissions }),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true);
+      },
     }
   )
 );

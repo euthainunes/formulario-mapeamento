@@ -15,11 +15,15 @@ import { ApiError } from "@/lib/client/api-fetch";
 
 export default function LoginPage() {
   const router = useRouter();
-  const { loginAs, isAuthenticated } = useAuth();
+  const { loginAs, isAuthenticated, hasHydrated } = useAuth();
 
   useEffect(() => {
-    if (isAuthenticated) router.replace("/");
-  }, [isAuthenticated, router]);
+    // Espera a reidratação do zustand/persist antes de decidir: sem isso,
+    // `isAuthenticated` começa falso em toda carga de página (mesmo com uma
+    // sessão válida no localStorage), e nunca redirecionaria de volta quando
+    // apropriado nem evitaria mostrar a tela de login por um instante à toa.
+    if (hasHydrated && isAuthenticated) router.replace("/");
+  }, [hasHydrated, isAuthenticated, router]);
 
   function handleLogin(id: string) {
     loginAs(id);
