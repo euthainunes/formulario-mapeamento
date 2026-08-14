@@ -1,7 +1,5 @@
-# Serviços de apoio para desenvolvimento local do backend. Não é necessário
-# validar que este arquivo sobe de fato neste sandbox (o daemon Docker pode
-# não ter permissão de rede/execução aqui) — ele existe para uso em uma
-# máquina de desenvolvimento normal.
+# Serviços de apoio para desenvolvimento local do backend (Postgres + Redis).
+# Uso: docker compose up -d postgres redis (a partir deste diretório).
 services:
   postgres:
     image: postgres:16-alpine

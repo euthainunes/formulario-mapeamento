@@ -14,7 +14,16 @@ async function bootstrap() {
     }),
   );
 
-  app.enableCors();
+  // A comunicação real acontece servidor-a-servidor (Route Handler do Next.js
+  // atuando como BFF -> este backend), então CORS não deveria ser exercitado
+  // em produção. Mesmo assim, deixamos configurado corretamente para permitir
+  // chamadas diretas (ex: Swagger UI, debugging manual) a partir da origem
+  // do front-end.
+  const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:3000';
+  app.enableCors({
+    origin: frontendUrl,
+    credentials: true,
+  });
 
   const config = new DocumentBuilder()
     .setTitle('BeeHome — Gestão da Comunicação + Inteligência da Intranet')
