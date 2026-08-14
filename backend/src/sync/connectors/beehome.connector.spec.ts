@@ -83,4 +83,32 @@ describe('BeeHomeConnector', () => {
     const connector = makeConnector({ BEEHOME_MAX_RETRIES: '3' });
     await expect(connector.getTopBeezzLikes()).rejects.toMatchObject({ status: 500 });
   });
+
+  it('busca reações consolidadas via GET /api/insights/reaction com o tipo informado', async () => {
+    const scope = nock(BASE_URL)
+      .get('/api/insights/reaction')
+      .query({ type: 'countNewsLiked' })
+      .matchHeader('authorization', `Bearer ${SECRET_TOKEN}`)
+      .reply(200, { data: [{ dayString: '2026-08-01', countNewsLiked: 12 }] });
+
+    const connector = makeConnector();
+    const result = await connector.getReaction({ type: 'countNewsLiked' });
+
+    expect(result).toEqual({ data: [{ dayString: '2026-08-01', countNewsLiked: 12 }] });
+    expect(scope.isDone()).toBe(true);
+  });
+
+  it('faz POST (não GET) para exportação de logins e trata a resposta como binário', async () => {
+    const fakeXlsBytes = Buffer.from('PK-fake-xls-content');
+    const scope = nock(BASE_URL)
+      .post('/audit/export/loginsByDate', { startDate: '2026-08-01', endDate: '2026-08-14' })
+      .matchHeader('authorization', `Bearer ${SECRET_TOKEN}`)
+      .reply(200, fakeXlsBytes, { 'Content-Type': 'application/vnd.ms-excel' });
+
+    const connector = makeConnector();
+    const result = await connector.exportLoginsByDate({ startDate: '2026-08-01', endDate: '2026-08-14' });
+
+    expect(Buffer.from(result as ArrayBuffer).toString()).toBe(fakeXlsBytes.toString());
+    expect(scope.isDone()).toBe(true);
+  });
 });
