@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { DEMO_BADGE_TEXT } from "@/lib/constants";
 import { appConfig } from "@/lib/app-config";
 import { ApiError } from "@/lib/client/api-fetch";
+import { LogoMark } from "@/components/brand/logo-mark";
 
 /**
  * Credenciais de demonstração desta tela — validadas só no cliente, sem
@@ -40,8 +41,8 @@ function AuthShell({ children }: { children: ReactNode }) {
         />
 
         <div className="relative flex items-center gap-2.5">
-          <div className="h-10 w-10 rounded-lg bg-white/15 backdrop-blur flex items-center justify-center text-white font-bold">
-            RA
+          <div className="h-10 w-10 rounded-lg bg-white/90 backdrop-blur flex items-center justify-center p-1.5">
+            <LogoMark className="h-full w-full" />
           </div>
           <span className="text-sm font-semibold tracking-wide">REDE AMÉRICAS</span>
         </div>
@@ -106,11 +107,8 @@ export default function LoginPage() {
   return (
     <AuthShell>
       <div className="mb-6 lg:hidden flex flex-col items-center text-center">
-        <div
-          className="h-12 w-12 rounded-xl flex items-center justify-center text-white text-xl font-bold mb-3"
-          style={{ background: "linear-gradient(135deg, var(--brand-primary), var(--brand-accent))" }}
-        >
-          RA
+        <div className="h-12 w-12 mb-3">
+          <LogoMark className="h-full w-full" />
         </div>
         <h1 className="text-lg font-semibold text-text-primary">Rede Américas</h1>
         <p className="text-sm text-text-secondary">Comunicação Interna</p>
@@ -218,11 +216,8 @@ function ApiLoginForm({ onSuccess }: { onSuccess: () => void }) {
   return (
     <AuthShell>
       <div className="mb-6 lg:hidden flex flex-col items-center text-center">
-        <div
-          className="h-12 w-12 rounded-xl flex items-center justify-center text-white text-xl font-bold mb-3"
-          style={{ background: "linear-gradient(135deg, var(--brand-primary), var(--brand-accent))" }}
-        >
-          RA
+        <div className="h-12 w-12 mb-3">
+          <LogoMark className="h-full w-full" />
         </div>
         <h1 className="text-lg font-semibold text-text-primary">Rede Américas</h1>
         <p className="text-sm text-text-secondary">Comunicação Interna</p>

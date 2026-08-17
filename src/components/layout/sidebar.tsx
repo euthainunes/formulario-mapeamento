@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { X } from "lucide-react";
 import { NAV_ITEMS, ADMIN_SUBNAV } from "@/lib/constants";
+import { LogoMark } from "@/components/brand/logo-mark";
 import { usePermission } from "@/hooks/use-permission";
 import { useAuthStore } from "@/store/auth.store";
 import { useSidebarStore } from "@/store/sidebar.store";
@@ -33,12 +34,7 @@ function SidebarContent() {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-4 py-5">
-        <div
-          className="h-8 w-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
-          style={{ background: "linear-gradient(135deg, var(--brand-primary), var(--brand-accent))" }}
-        >
-          RA
-        </div>
+        <LogoMark className="h-8 w-8 shrink-0" />
         <div className="leading-tight">
           <p className="text-sm font-semibold text-text-primary">Rede Américas</p>
           <p className="text-[11px] text-text-secondary">Comunicação Interna</p>
