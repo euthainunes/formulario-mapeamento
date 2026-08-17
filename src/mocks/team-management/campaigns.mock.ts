@@ -19,7 +19,7 @@ export const TEAM_CAMPAIGNS: TeamCampaign[] = [
     criticality: "alta",
     startDate: relativeDate(-43),
     targetDate: relativeDate(-4),
-    ownerName: "Mariana Souza",
+    ownerName: "Mariana da Silva",
     status: "concluida",
   },
   {
@@ -32,7 +32,7 @@ export const TEAM_CAMPAIGNS: TeamCampaign[] = [
     criticality: "media",
     startDate: relativeDate(-220),
     targetDate: relativeDate(127),
-    ownerName: "Thainá Nunes",
+    ownerName: "Thaina Nunes",
     status: "em_andamento",
   },
   {
@@ -45,7 +45,7 @@ export const TEAM_CAMPAIGNS: TeamCampaign[] = [
     criticality: "alta",
     startDate: relativeDate(-24),
     targetDate: relativeDate(12),
-    ownerName: "Camila Duarte",
+    ownerName: "Camila Pessoa",
     status: "em_andamento",
   },
   {
@@ -58,7 +58,7 @@ export const TEAM_CAMPAIGNS: TeamCampaign[] = [
     criticality: "critica",
     startDate: relativeDate(-29),
     targetDate: relativeDate(2),
-    ownerName: "Mariana Souza",
+    ownerName: "Mariana da Silva",
     status: "em_andamento",
   },
   {
@@ -71,7 +71,7 @@ export const TEAM_CAMPAIGNS: TeamCampaign[] = [
     criticality: "alta",
     startDate: relativeDate(-43),
     targetDate: relativeDate(23),
-    ownerName: "Hector Ramos",
+    ownerName: "Hector Kodi",
     status: "planejamento",
   },
   {
@@ -84,7 +84,7 @@ export const TEAM_CAMPAIGNS: TeamCampaign[] = [
     criticality: "media",
     startDate: relativeDate(-12),
     targetDate: relativeDate(28),
-    ownerName: "Carol Ferraz",
+    ownerName: "Caroline Verdinassi",
     status: "em_andamento",
   },
   {
@@ -97,7 +97,7 @@ export const TEAM_CAMPAIGNS: TeamCampaign[] = [
     criticality: "baixa",
     startDate: relativeDate(-34),
     targetDate: relativeDate(7),
-    ownerName: "Sarah Lima",
+    ownerName: "Sarah dos Santos",
     status: "em_andamento",
   },
   {
@@ -110,7 +110,7 @@ export const TEAM_CAMPAIGNS: TeamCampaign[] = [
     criticality: "alta",
     startDate: relativeDate(-8),
     targetDate: relativeDate(19),
-    ownerName: "Mariana Souza",
+    ownerName: "Mariana da Silva",
     status: "planejamento",
   },
   {
@@ -123,7 +123,7 @@ export const TEAM_CAMPAIGNS: TeamCampaign[] = [
     criticality: "baixa",
     startDate: relativeDate(-224),
     targetDate: relativeDate(140),
-    ownerName: "Hector Ramos",
+    ownerName: "Hector Kodi",
     status: "em_andamento",
   },
   {
@@ -136,7 +136,7 @@ export const TEAM_CAMPAIGNS: TeamCampaign[] = [
     criticality: "media",
     startDate: relativeDate(-19),
     targetDate: relativeDate(9),
-    ownerName: "Larissa Prado",
+    ownerName: "Larissa Nascimento",
     status: "em_andamento",
   },
 ];

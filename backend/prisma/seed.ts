@@ -61,14 +61,15 @@ interface SeedUserDef {
 }
 
 const USERS: SeedUserDef[] = [
-  { name: 'Bruna Albuquerque', roleKey: 'administradora', department: 'Comunicação', jobTitle: 'Administradora da Plataforma' },
-  { name: 'Thainá Nunes', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
-  { name: 'Mariana Souza', roleKey: null, department: 'Comunicação', jobTitle: 'Coordenadora de Comunicação' },
-  { name: 'Hector Ramos', roleKey: null, department: 'Comunicação', jobTitle: 'Especialista de Conteúdo' },
-  { name: 'Camila Duarte', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
-  { name: 'Carol Ferraz', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
-  { name: 'Larissa Prado', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
-  { name: 'Sarah Lima', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
+  { name: 'Bruna de Carvalho', roleKey: 'administradora', department: 'Comunicação', jobTitle: 'Administradora da Plataforma' },
+  { name: 'Thaina Nunes', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
+  { name: 'Mariana da Silva', roleKey: null, department: 'Comunicação', jobTitle: 'Coordenadora de Comunicação' },
+  { name: 'Hector Kodi', roleKey: null, department: 'Comunicação', jobTitle: 'Especialista de Conteúdo' },
+  { name: 'Camila Pessoa', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
+  { name: 'Caroline Verdinassi', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
+  { name: 'Larissa Nascimento', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
+  { name: 'Sarah dos Santos', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
+  { name: 'Letícia Vieira', roleKey: null, department: 'Comunicação', jobTitle: 'Analista de Comunicação' },
 ];
 
 async function main() {

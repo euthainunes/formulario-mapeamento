@@ -10,9 +10,9 @@ test.describe("Login único — apenas Bruna é administradora", () => {
 
     // As colaboradoras da Comunicação são pessoas rastreadas nos indicadores,
     // não contas do sistema — não devem aparecer como opção de login.
-    await expect(page.getByRole("button", { name: "Thainá Nunes" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Mariana Souza" })).toHaveCount(0);
-    await expect(page.getByRole("button", { name: "Camila Duarte" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Thaina Nunes" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Mariana da Silva" })).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Camila Pessoa" })).toHaveCount(0);
 
     // Login/senha inválidos mostram erro e não autenticam.
     await page.locator("#login").fill("000");
@@ -23,7 +23,7 @@ test.describe("Login único — apenas Bruna é administradora", () => {
   });
 
   test("Bruna (administradora) vê todos os módulos, incluindo Administração", async ({ page }) => {
-    await loginAsMock(page, "Bruna Albuquerque");
+    await loginAsMock(page, "Bruna de Carvalho");
 
     await expect(page.getByRole("heading", { name: "Dashboard Executivo" })).toBeVisible();
     await expect(page.getByRole("link", { name: "Relatórios e Exportações" })).toBeVisible();

@@ -3,7 +3,7 @@ import { loginAsMock } from "./helpers";
 
 test.describe("Gestão do Time — fumaça do módulo", () => {
   test("Bruna acessa a Visão Geral e o Quadro sem erro", async ({ page }) => {
-    await loginAsMock(page, "Bruna Albuquerque");
+    await loginAsMock(page, "Bruna de Carvalho");
 
     await page.getByRole("link", { name: "Gestão do Time" }).click();
     await expect(page.getByRole("heading", { name: "Gestão do Time", exact: true })).toBeVisible();

@@ -3,7 +3,7 @@ import { TeamBucket, TeamPlan, TEAM_BUCKET_NAMES } from "@/types/team-management
 export const TEAM_PLAN: TeamPlan = {
   id: "plan-comunicacao-interna",
   title: "Planner — Comunicação Interna",
-  ownerName: "Mariana Souza",
+  ownerName: "Mariana da Silva",
 };
 
 export const TEAM_BUCKETS: TeamBucket[] = TEAM_BUCKET_NAMES.map((name, index) => ({

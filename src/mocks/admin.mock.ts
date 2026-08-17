@@ -20,12 +20,12 @@ export const MOCK_ADMIN_USERS: AdminUser[] = MOCK_ACCOUNTS.map((acc, idx) => ({
 }));
 
 export const MOCK_AUDIT_LOG: AuditLogEntry[] = [
-  { id: "audit-1", actor: "Bruna Albuquerque", action: "Gerou relatório", target: "Relatório de Audiência — Departamento Comunicação", timestamp: daysAgoIso(6) },
-  { id: "audit-2", actor: "Bruna Albuquerque", action: "Atualizou regra de alerta", target: "Queda de acessos diários", timestamp: daysAgoIso(9) },
+  { id: "audit-1", actor: "Bruna de Carvalho", action: "Gerou relatório", target: "Relatório de Audiência — Departamento Comunicação", timestamp: daysAgoIso(6) },
+  { id: "audit-2", actor: "Bruna de Carvalho", action: "Atualizou regra de alerta", target: "Queda de acessos diários", timestamp: daysAgoIso(9) },
   { id: "audit-3", actor: "Sistema", action: "Sincronização concluída com falha simulada", target: "Intranet BeeHome", timestamp: daysAgoIso(3) },
-  { id: "audit-4", actor: "Bruna Albuquerque", action: "Alterou status de alerta", target: "Queda de utilização — Pod Financeiro", timestamp: daysAgoIso(11) },
-  { id: "audit-5", actor: "Bruna Albuquerque", action: "Alterou perfil de permissão", target: "Gestão de Comunicação", timestamp: daysAgoIso(30) },
-  { id: "audit-6", actor: "Bruna Albuquerque", action: "Exportou relatório", target: "Relatório Executivo — Julho 2026", timestamp: daysAgoIso(14) },
+  { id: "audit-4", actor: "Bruna de Carvalho", action: "Alterou status de alerta", target: "Queda de utilização — Pod Financeiro", timestamp: daysAgoIso(11) },
+  { id: "audit-5", actor: "Bruna de Carvalho", action: "Alterou perfil de permissão", target: "Gestão de Comunicação", timestamp: daysAgoIso(30) },
+  { id: "audit-6", actor: "Bruna de Carvalho", action: "Exportou relatório", target: "Relatório Executivo — Julho 2026", timestamp: daysAgoIso(14) },
   { id: "audit-7", actor: "Sistema", action: "Alerta gerado automaticamente", target: "Queda de 18% nos acessos da última semana", timestamp: daysAgoIso(1) },
 ];
 

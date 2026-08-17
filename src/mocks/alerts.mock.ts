@@ -16,7 +16,7 @@ export const MOCK_ALERT_RULES: AlertRule[] = [
     threshold: 15,
     severity: "warning",
     active: true,
-    createdBy: "Bruna Albuquerque",
+    createdBy: "Bruna de Carvalho",
     createdAt: daysAgoIso(120),
   },
   {
@@ -27,7 +27,7 @@ export const MOCK_ALERT_RULES: AlertRule[] = [
     threshold: 30,
     severity: "info",
     active: true,
-    createdBy: "Bruna Albuquerque",
+    createdBy: "Bruna de Carvalho",
     createdAt: daysAgoIso(95),
   },
   {
@@ -38,7 +38,7 @@ export const MOCK_ALERT_RULES: AlertRule[] = [
     threshold: 1,
     severity: "critical",
     active: true,
-    createdBy: "Bruna Albuquerque",
+    createdBy: "Bruna de Carvalho",
     createdAt: daysAgoIso(150),
   },
   {
@@ -49,7 +49,7 @@ export const MOCK_ALERT_RULES: AlertRule[] = [
     threshold: 20,
     severity: "warning",
     active: false,
-    createdBy: "Bruna Albuquerque",
+    createdBy: "Bruna de Carvalho",
     createdAt: daysAgoIso(60),
   },
 ];
@@ -68,7 +68,7 @@ export const MOCK_ALERTS: Alert[] = [
     metric: "Status da sincronização",
     history: [
       { id: "h-1-1", status: "novo", changedBy: "Sistema", changedAt: daysAgoIso(3) },
-      { id: "h-1-2", status: "em_analise", changedBy: "Bruna Albuquerque", changedAt: daysAgoIso(2) },
+      { id: "h-1-2", status: "em_analise", changedBy: "Bruna de Carvalho", changedAt: daysAgoIso(2) },
     ],
   },
   {
@@ -96,8 +96,8 @@ export const MOCK_ALERTS: Alert[] = [
     metric: "Curtidas + comentários por publicação",
     history: [
       { id: "h-3-1", status: "novo", changedBy: "Sistema", changedAt: daysAgoIso(12) },
-      { id: "h-3-2", status: "em_analise", changedBy: "Bruna Albuquerque", changedAt: daysAgoIso(10) },
-      { id: "h-3-3", status: "resolvido", changedBy: "Bruna Albuquerque", changedAt: daysAgoIso(9), note: "Reforço de divulgação feito." },
+      { id: "h-3-2", status: "em_analise", changedBy: "Bruna de Carvalho", changedAt: daysAgoIso(10) },
+      { id: "h-3-3", status: "resolvido", changedBy: "Bruna de Carvalho", changedAt: daysAgoIso(9), note: "Reforço de divulgação feito." },
     ],
   },
   {
@@ -112,7 +112,7 @@ export const MOCK_ALERTS: Alert[] = [
     metric: "Total de acessos",
     history: [
       { id: "h-4-1", status: "novo", changedBy: "Sistema", changedAt: daysAgoIso(45) },
-      { id: "h-4-2", status: "ignorado", changedBy: "Bruna Albuquerque", changedAt: daysAgoIso(44), note: "Período de feriado prolongado, esperado." },
+      { id: "h-4-2", status: "ignorado", changedBy: "Bruna de Carvalho", changedAt: daysAgoIso(44), note: "Período de feriado prolongado, esperado." },
     ],
   },
 ];

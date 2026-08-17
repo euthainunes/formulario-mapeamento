@@ -32,13 +32,13 @@ export const TEAM_TASK_HISTORY: TeamTaskHistoryEvent[] = [
   ev("t-dia-dos-pais-1", "status_changed", -39, "Backlog", "Planejamento"),
   ev("t-dia-dos-pais-1", "completed", -38),
   ev("t-dia-dos-pais-2", "created", -38),
-  ev("t-dia-dos-pais-2", "assignee_changed", -34, "Larissa Prado", "Camila Duarte"),
+  ev("t-dia-dos-pais-2", "assignee_changed", -34, "Larissa Nascimento", "Camila Pessoa"),
   ev("t-dia-dos-pais-2", "completed", -28),
   ev("t-dia-dos-pais-3", "created", -30),
   ev("t-dia-dos-pais-3", "due_date_changed", -27, "26 dias atrás", "24 dias atrás"),
   ev("t-dia-dos-pais-3", "completed", -24),
   ev("t-dia-dos-pais-6", "created", -25),
-  ev("t-dia-dos-pais-6", "assignee_changed", -22, "Mariana Souza", "Sem responsável"),
+  ev("t-dia-dos-pais-6", "assignee_changed", -22, "Mariana da Silva", "Sem responsável"),
   ev("t-dia-dos-pais-6", "status_changed", -20, "Planejamento", "Aprovação"),
 
   // Campanha de segurança — tarefa bloqueada e crítica
@@ -46,7 +46,7 @@ export const TEAM_TASK_HISTORY: TeamTaskHistoryEvent[] = [
   ev("t-seguranca-4", "status_changed", -7, "Produção", "Aprovação"),
   ev("t-seguranca-4", "due_date_changed", -5, "7 dias a partir de hoje", "2 dias a partir de hoje"),
   ev("t-seguranca-3", "created", -14),
-  ev("t-seguranca-3", "assignee_changed", -12, "Sarah Lima", "Larissa Prado"),
+  ev("t-seguranca-3", "assignee_changed", -12, "Sarah dos Santos", "Larissa Nascimento"),
   ev("t-seguranca-5", "created", -5),
   ev("t-seguranca-5", "due_date_changed", -2, "5 dias a partir de hoje", "1 dia a partir de hoje"),
 
@@ -59,7 +59,7 @@ export const TEAM_TASK_HISTORY: TeamTaskHistoryEvent[] = [
   // Newsletter interna
   ev("t-newsletter-2", "created", -5),
   ev("t-newsletter-4", "created", -20),
-  ev("t-newsletter-4", "assignee_changed", -18, "Thainá Nunes", "Hector Ramos"),
+  ev("t-newsletter-4", "assignee_changed", -18, "Thaina Nunes", "Hector Kodi"),
 
   // Comunicação de benefícios
   ev("t-beneficios-3", "created", -8),
@@ -79,7 +79,7 @@ export const TEAM_TASK_HISTORY: TeamTaskHistoryEvent[] = [
 
   // Produção de peças de comunicação
   ev("t-pecas-3", "created", -7),
-  ev("t-pecas-3", "assignee_changed", -4, "Camila Duarte", "Mariana Souza"),
+  ev("t-pecas-3", "assignee_changed", -4, "Camila Pessoa", "Mariana da Silva"),
 
   // Reconhecimento e pesquisa de clima
   ev("t-reconhecimento-4", "created", -4),

@@ -39,11 +39,12 @@ function member(
 }
 
 export const COMMUNICATION_TEAM: Collaborator[] = [
-  member("Thainá Nunes", "Analista de Comunicação", 620, 2, 14),
-  member("Mariana Souza", "Coordenadora de Comunicação", 1450, 6, 3),
-  member("Hector Ramos", "Especialista de Conteúdo", 980, 9, 22),
-  member("Camila Duarte", "Analista de Comunicação", 340, 0, 30),
-  member("Carol Ferraz", "Analista de Comunicação", 210, 4, 11),
-  member("Larissa Prado", "Analista de Comunicação", 75, 11, 5),
-  member("Sarah Lima", "Analista de Comunicação", 500, 7, 19),
+  member("Thaina Nunes", "Analista de Comunicação", 620, 2, 14),
+  member("Mariana da Silva", "Coordenadora de Comunicação", 1450, 6, 3),
+  member("Hector Kodi", "Especialista de Conteúdo", 980, 9, 22),
+  member("Camila Pessoa", "Analista de Comunicação", 340, 0, 30),
+  member("Caroline Verdinassi", "Analista de Comunicação", 210, 4, 11),
+  member("Larissa Nascimento", "Analista de Comunicação", 75, 11, 5),
+  member("Sarah dos Santos", "Analista de Comunicação", 500, 7, 19),
+  member("Letícia Vieira", "Analista de Comunicação", 150, 3, 8),
 ];

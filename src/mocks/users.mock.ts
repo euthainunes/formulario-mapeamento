@@ -31,7 +31,7 @@ function build(
  * conteúdo, Beezz, engajamento) a Bruna acompanha e analisa através dele.
  */
 export const MOCK_ACCOUNTS: MockAccount[] = [
-  build("Bruna Albuquerque", "administradora", "Comunicação", "Administradora da Plataforma"),
+  build("Bruna de Carvalho", "administradora", "Comunicação", "Administradora da Plataforma"),
 ];
 
 export function findAccountById(id: string): MockAccount | undefined {

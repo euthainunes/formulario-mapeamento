@@ -10,7 +10,7 @@ const MODULES = [
 
 test.describe("Navegação entre módulos", () => {
   test("a partir do dashboard, os módulos principais renderizam sem erro via sidebar", async ({ page }) => {
-    await loginAsMock(page, "Bruna Albuquerque");
+    await loginAsMock(page, "Bruna de Carvalho");
 
     for (const mod of MODULES) {
       await page.getByRole("link", { name: mod.label }).click();
