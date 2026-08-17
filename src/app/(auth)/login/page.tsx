@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { ShieldCheck, ArrowRight, Loader2 } from "lucide-react";
+import { ShieldCheck, ArrowRight, Loader2, Eye, EyeOff, Lock } from "lucide-react";
 import { MOCK_ACCOUNTS } from "@/mocks/users.mock";
-import { ROLES } from "@/lib/permissions";
 import { useAuth } from "@/hooks/use-auth";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -13,9 +12,69 @@ import { DEMO_BADGE_TEXT } from "@/lib/constants";
 import { appConfig } from "@/lib/app-config";
 import { ApiError } from "@/lib/client/api-fetch";
 
+/**
+ * Credenciais de demonstração desta tela — validadas só no cliente, sem
+ * nenhuma chamada de rede (estamos em modo mock). Não representam um
+ * mecanismo de autenticação real; existem só para dar uma experiência de
+ * login/senha "de verdade" na demonstração, já que hoje só a administradora
+ * (Bruna) tem conta no sistema.
+ */
+const DEMO_LOGIN = "12457832659";
+const DEMO_PASSWORD = "redeamericas";
+
+/** Painel de marca compartilhado pelas duas variantes de login (mock e api). */
+function AuthShell({ children }: { children: ReactNode }) {
+  return (
+    <div className="min-h-screen bg-bg flex">
+      <div
+        className="hidden lg:flex lg:w-[42%] flex-col justify-between p-10 text-white relative overflow-hidden"
+        style={{ background: "linear-gradient(160deg, #4a1554 0%, var(--brand-primary) 55%, #8a9c5e 130%)" }}
+      >
+        <div
+          className="absolute -right-24 -top-24 h-80 w-80 rounded-full opacity-20"
+          style={{ background: "var(--brand-accent)" }}
+        />
+        <div
+          className="absolute -left-16 bottom-10 h-56 w-56 rounded-full opacity-10"
+          style={{ background: "var(--brand-secondary)" }}
+        />
+
+        <div className="relative flex items-center gap-2.5">
+          <div className="h-10 w-10 rounded-lg bg-white/15 backdrop-blur flex items-center justify-center text-white font-bold">
+            RA
+          </div>
+          <span className="text-sm font-semibold tracking-wide">REDE AMÉRICAS</span>
+        </div>
+
+        <div className="relative space-y-4">
+          <h1 className="text-3xl font-semibold leading-tight">
+            Gestão da Comunicação
+            <br />e Inteligência da Intranet
+          </h1>
+          <p className="text-sm text-white/80 max-w-sm">
+            Uma visão centralizada da operação de Comunicação Interna e Endomarketing — audiência, conteúdos,
+            engajamento e a gestão do time, em um só lugar.
+          </p>
+        </div>
+
+        <p className="relative text-xs text-white/60">© {new Date().getFullYear()} Rede Américas</p>
+      </div>
+
+      <div className="flex-1 flex items-center justify-center px-4 py-10">
+        <div className="w-full max-w-sm">{children}</div>
+      </div>
+    </div>
+  );
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const { loginAs, isAuthenticated, hasHydrated } = useAuth();
+  const [login, setLogin] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     // Espera a reidratação do zustand/persist antes de decidir: sem isso,
@@ -25,8 +84,18 @@ export default function LoginPage() {
     if (hasHydrated && isAuthenticated) router.replace("/");
   }, [hasHydrated, isAuthenticated, router]);
 
-  function handleLogin(id: string) {
-    loginAs(id);
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+
+    if (login.trim() !== DEMO_LOGIN || password !== DEMO_PASSWORD) {
+      setError("Login ou senha inválidos.");
+      return;
+    }
+
+    setLoading(true);
+    const bruna = MOCK_ACCOUNTS[0];
+    loginAs(bruna.id);
     router.push("/");
   }
 
@@ -35,51 +104,90 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-bg flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-lg">
-        <div className="flex flex-col items-center text-center mb-6">
-          <div className="h-12 w-12 rounded-xl bg-brand-primary flex items-center justify-center text-white text-xl font-bold mb-3">
-            B
-          </div>
-          <h1 className="text-lg font-semibold text-text-primary">Gestão da Comunicação</h1>
-          <p className="text-sm text-text-secondary">Inteligência da Intranet BeeHome</p>
-          <Badge tone="warning" className="mt-3">
-            {DEMO_BADGE_TEXT}
-          </Badge>
+    <AuthShell>
+      <div className="mb-6 lg:hidden flex flex-col items-center text-center">
+        <div
+          className="h-12 w-12 rounded-xl flex items-center justify-center text-white text-xl font-bold mb-3"
+          style={{ background: "linear-gradient(135deg, var(--brand-primary), var(--brand-accent))" }}
+        >
+          RA
         </div>
-
-        <div className="rounded-card border border-border bg-surface p-5 shadow-sm">
-          <div className="flex items-start gap-2 mb-4 text-xs text-text-secondary bg-info/5 border border-info/20 rounded-lg p-3">
-            <ShieldCheck className="h-4 w-4 text-info shrink-0 mt-0.5" />
-            <p>
-              Modo demonstração: escolha um usuário fictício para simular o login. Nenhuma senha é utilizada — este
-              fluxo não representa um mecanismo de autenticação real.
-            </p>
-          </div>
-
-          <div className="space-y-2">
-            {MOCK_ACCOUNTS.map((account) => (
-              <button
-                key={account.id}
-                onClick={() => handleLogin(account.id)}
-                className="w-full flex items-center gap-3 rounded-lg border border-border px-3.5 py-2.5 text-left transition-colors hover:border-brand-primary hover:bg-brand-primary/5"
-              >
-                <div className="h-9 w-9 shrink-0 rounded-full bg-brand-secondary/15 text-brand-primary flex items-center justify-center text-xs font-semibold">
-                  {account.avatarInitials}
-                </div>
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-medium text-text-primary truncate">{account.name}</p>
-                  <p className="text-xs text-text-secondary truncate">
-                    {ROLES[account.role].name} · {account.jobTitle}
-                  </p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-text-secondary shrink-0" />
-              </button>
-            ))}
-          </div>
-        </div>
+        <h1 className="text-lg font-semibold text-text-primary">Rede Américas</h1>
+        <p className="text-sm text-text-secondary">Comunicação Interna</p>
       </div>
-    </div>
+
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold text-text-primary">Bem-vinda de volta</h2>
+        <p className="text-sm text-text-secondary mt-1">Entre com seu login e senha para acessar o painel.</p>
+        <Badge tone="warning" className="mt-3">
+          {DEMO_BADGE_TEXT}
+        </Badge>
+      </div>
+
+      <div className="rounded-card border border-border bg-surface p-5 shadow-sm">
+        <div className="flex items-start gap-2 mb-4 text-xs text-text-secondary bg-brand-secondary/15 border border-brand-primary/15 rounded-lg p-3">
+          <ShieldCheck className="h-4 w-4 text-brand-primary shrink-0 mt-0.5" />
+          <p>
+            Ambiente demonstrativo. Use o login <strong className="text-text-primary">12457832659</strong> e a
+            senha <strong className="text-text-primary">redeamericas</strong> para entrar como administradora.
+          </p>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-3.5">
+          <div>
+            <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="login">
+              Login
+            </label>
+            <Input
+              id="login"
+              value={login}
+              onChange={(e) => setLogin(e.target.value)}
+              placeholder="Seu login"
+              required
+              autoComplete="username"
+              inputMode="numeric"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="password">
+              Senha
+            </label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Sua senha"
+                required
+                autoComplete="current-password"
+                className="pr-9"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
+                aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+
+          {error && (
+            <p className="flex items-center gap-1.5 text-xs text-error">
+              <Lock className="h-3.5 w-3.5 shrink-0" />
+              {error}
+            </p>
+          )}
+
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+            Entrar
+          </Button>
+        </form>
+      </div>
+    </AuthShell>
   );
 }
 
@@ -89,6 +197,7 @@ function ApiLoginForm({ onSuccess }: { onSuccess: () => void }) {
   const [tenantSlug, setTenantSlug] = useState(process.env.NEXT_PUBLIC_DEFAULT_TENANT_SLUG ?? "");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -107,66 +216,83 @@ function ApiLoginForm({ onSuccess }: { onSuccess: () => void }) {
   }
 
   return (
-    <div className="min-h-screen bg-bg flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col items-center text-center mb-6">
-          <div className="h-12 w-12 rounded-xl bg-brand-primary flex items-center justify-center text-white text-xl font-bold mb-3">
-            B
-          </div>
-          <h1 className="text-lg font-semibold text-text-primary">Gestão da Comunicação</h1>
-          <p className="text-sm text-text-secondary">Inteligência da Intranet BeeHome</p>
+    <AuthShell>
+      <div className="mb-6 lg:hidden flex flex-col items-center text-center">
+        <div
+          className="h-12 w-12 rounded-xl flex items-center justify-center text-white text-xl font-bold mb-3"
+          style={{ background: "linear-gradient(135deg, var(--brand-primary), var(--brand-accent))" }}
+        >
+          RA
         </div>
+        <h1 className="text-lg font-semibold text-text-primary">Rede Américas</h1>
+        <p className="text-sm text-text-secondary">Comunicação Interna</p>
+      </div>
 
-        <form onSubmit={handleSubmit} className="rounded-card border border-border bg-surface p-5 shadow-sm space-y-3.5">
-          <div>
-            <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="tenantSlug">
-              Tenant
-            </label>
-            <Input
-              id="tenantSlug"
-              value={tenantSlug}
-              onChange={(e) => setTenantSlug(e.target.value)}
-              placeholder="beehome-brasil"
-              required
-              autoComplete="organization"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="email">
-              E-mail
-            </label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="nome@empresa.com.br"
-              required
-              autoComplete="username"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="password">
-              Senha
-            </label>
+      <div className="mb-5">
+        <h2 className="text-xl font-semibold text-text-primary">Bem-vinda de volta</h2>
+        <p className="text-sm text-text-secondary mt-1">Entre com seu e-mail e senha para acessar o painel.</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="rounded-card border border-border bg-surface p-5 shadow-sm space-y-3.5">
+        <div>
+          <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="tenantSlug">
+            Tenant
+          </label>
+          <Input
+            id="tenantSlug"
+            value={tenantSlug}
+            onChange={(e) => setTenantSlug(e.target.value)}
+            placeholder="rede-americas"
+            required
+            autoComplete="organization"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="email">
+            E-mail
+          </label>
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="nome@empresa.com.br"
+            required
+            autoComplete="username"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="password">
+            Senha
+          </label>
+          <div className="relative">
             <Input
               id="password"
-              type="password"
+              type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               autoComplete="current-password"
+              className="pr-9"
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword((v) => !v)}
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-secondary hover:text-text-primary"
+              aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
+            >
+              {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+            </button>
           </div>
+        </div>
 
-          {error && <p className="text-xs text-error">{error}</p>}
+        {error && <p className="text-xs text-error">{error}</p>}
 
-          <Button type="submit" className="w-full" disabled={loading}>
-            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
-            Entrar
-          </Button>
-        </form>
-      </div>
-    </div>
+        <Button type="submit" className="w-full" disabled={loading}>
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}
+          Entrar
+        </Button>
+      </form>
+    </AuthShell>
   );
 }

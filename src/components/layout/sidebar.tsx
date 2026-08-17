@@ -33,12 +33,15 @@ function SidebarContent() {
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-4 py-5">
-        <div className="h-8 w-8 rounded-lg bg-brand-primary flex items-center justify-center text-white text-sm font-bold">
-          B
+        <div
+          className="h-8 w-8 rounded-lg flex items-center justify-center text-white text-sm font-bold shrink-0"
+          style={{ background: "linear-gradient(135deg, var(--brand-primary), var(--brand-accent))" }}
+        >
+          RA
         </div>
         <div className="leading-tight">
-          <p className="text-sm font-semibold text-text-primary">Comunicação BeeHome</p>
-          <p className="text-[11px] text-text-secondary">Inteligência da Intranet</p>
+          <p className="text-sm font-semibold text-text-primary">Rede Américas</p>
+          <p className="text-[11px] text-text-secondary">Comunicação Interna</p>
         </div>
       </div>
 

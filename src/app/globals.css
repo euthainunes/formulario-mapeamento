@@ -1,13 +1,18 @@
 @import "tailwindcss";
 
 :root {
-  --brand-primary: #2e3aae;
-  --brand-secondary: #4a5cc4;
-  --bg: #f7f8fa;
+  /* Identidade de marca — Rede Américas */
+  --brand-primary: #6d2077;
+  --brand-secondary: #d9b4d5;
+  --brand-accent: #cddc9c;
+  --bg: #f1f1f1;
   --surface: #ffffff;
-  --text-primary: #1c2434;
-  --text-secondary: #667085;
-  --border: #e4e7ec;
+  --text-primary: #343434;
+  /* Derivado de --text-primary: #c7c6c2 (borda) não tem contraste suficiente
+     para texto (~1.5:1 sobre branco); este cinza médio mantém a família
+     neutra da marca com contraste acessível (~6:1) para texto secundário. */
+  --text-secondary: #6b6b6b;
+  --border: #c7c6c2;
   --success: #12b76a;
   --info: #2e90fa;
   --warning: #f79009;
@@ -21,6 +26,7 @@
 @theme inline {
   --color-brand-primary: var(--brand-primary);
   --color-brand-secondary: var(--brand-secondary);
+  --color-brand-accent: var(--brand-accent);
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-text-primary: var(--text-primary);
