@@ -13,14 +13,22 @@ export const CHART_COLORS = {
   neutral: "#8C8B87",
 };
 
+// Paleta categórica para diferenciar muitas séries/categorias (gráficos com
+// múltiplas séries, tags de campanha, departamentos etc.) — ordem fixa,
+// nunca cicle os tons. Derivada da paleta de referência validada da skill
+// dataviz (lightness band, chroma floor, separação CVD, piso de visão normal
+// e contraste — ver scripts/validate_palette.js), reordenada para liderar
+// com os tons violeta/verde da marca mantendo os pares adjacentes originais
+// intactos (apenas o novo par vermelho↔azul foi revalidado).
 export const CATEGORICAL_PALETTE = [
-  CHART_COLORS.primary,
-  CHART_COLORS.accent,
-  CHART_COLORS.info,
-  CHART_COLORS.secondary,
-  CHART_COLORS.warning,
-  CHART_COLORS.success,
-  CHART_COLORS.neutral,
+  "#008300", // verde (marca)
+  "#4A3AA7", // violeta (marca)
+  "#E34948", // vermelho
+  "#2A78D6", // azul
+  "#EB6834", // laranja
+  "#1BAF7A", // água
+  "#EDA100", // amarelo
+  "#E87BA4", // magenta
 ];
 
 export const GRID_COLOR = "#E4E7EC";
