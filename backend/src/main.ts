@@ -1,10 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { ValidationPipe } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
+import helmet from 'helmet';
 import { AppModule } from './app.module';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  app.use(
+    helmet({
+      // CSP própria do helmet fica desligada porque o Swagger UI (/docs)
+      // depende de script/style inline — sem isso a página de docs quebra.
+      // As demais proteções (X-Frame-Options, X-Content-Type-Options, HSTS,
+      // Referrer-Policy) continuam ativas com os padrões do helmet.
+      contentSecurityPolicy: false,
+    }),
+  );
 
   app.useGlobalPipes(
     new ValidationPipe({
