@@ -60,3 +60,8 @@ export function previousRange(range: DateRange): DateRange {
 export function isWithinRange(dateIso: string, range: DateRange): boolean {
   return dateIso >= range.from && dateIso <= range.to;
 }
+
+/** Mesmo limiar de 62 dias usado em bucketTimeSeries (servidor) — usado no front pra saber se o gráfico veio agrupado por mês e escolher o formatador de rótulo certo. */
+export function isLongRange(range: DateRange): boolean {
+  return differenceInCalendarDays(new Date(range.to), new Date(range.from)) + 1 > 62;
+}

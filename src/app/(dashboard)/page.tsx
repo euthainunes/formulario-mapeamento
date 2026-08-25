@@ -19,6 +19,8 @@ import { SyncStatusCard } from "@/components/dashboard/sync-status-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CHART_COLORS } from "@/lib/chart-colors";
 import { appConfig } from "@/lib/app-config";
+import { isLongRange } from "@/lib/date-range";
+import { formatMonthLabel } from "@/lib/formatters";
 
 function KpiSkeleton() {
   return (
@@ -33,6 +35,7 @@ function KpiSkeleton() {
 export default function DashboardExecutivoPage() {
   const filters = useGlobalFilters();
   const { data, isLoading, isError } = useDashboardData(filters);
+  const dateFormatter = isLongRange(filters.dateRange) ? formatMonthLabel : undefined;
 
   return (
     <RouteGuard permission="dashboard.view">
@@ -63,10 +66,10 @@ export default function DashboardExecutivoPage() {
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
               <SectionCard title="Evolução de acessos" description="Total de acessos por data no período selecionado.">
-                <LineChartCard data={data.accessEvolution} color={CHART_COLORS.primary} />
+                <LineChartCard data={data.accessEvolution} color={CHART_COLORS.primary} dateFormatter={dateFormatter} />
               </SectionCard>
               <SectionCard title="Evolução de usuários ativos" description="Colaboradores distintos com acesso registrado por dia.">
-                <AreaChartCard data={data.activeUsersEvolution} color={CHART_COLORS.info} />
+                <AreaChartCard data={data.activeUsersEvolution} color={CHART_COLORS.info} dateFormatter={dateFormatter} />
               </SectionCard>
             </div>
 

@@ -8,6 +8,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import { PeriodPreset } from "@/types/filters";
 import { PERIOD_LABELS } from "@/lib/date-range";
 import { ORG_FILTER_DISABLED_TOOLTIP, COMPANIES, DEPARTMENTS, JOB_TITLES, TEAMS } from "@/lib/constants";
+import { appConfig } from "@/lib/app-config";
 
 function OrgSelect({
   label,
@@ -86,10 +87,14 @@ export function GlobalFiltersBar() {
         </>
       )}
 
-      <OrgSelect label="Empresa" value={filters.company} options={COMPANIES} onChange={filters.setCompany} />
-      <OrgSelect label="Departamento" value={filters.department} options={DEPARTMENTS} onChange={filters.setDepartment} />
-      <OrgSelect label="Cargo" value={filters.jobTitle} options={JOB_TITLES} onChange={filters.setJobTitle} />
-      <OrgSelect label="Time" value={filters.team} options={TEAMS} onChange={filters.setTeam} />
+      {appConfig.dataSource === "mock" && (
+        <>
+          <OrgSelect label="Empresa" value={filters.company} options={COMPANIES} onChange={filters.setCompany} />
+          <OrgSelect label="Departamento" value={filters.department} options={DEPARTMENTS} onChange={filters.setDepartment} />
+          <OrgSelect label="Cargo" value={filters.jobTitle} options={JOB_TITLES} onChange={filters.setJobTitle} />
+          <OrgSelect label="Time" value={filters.team} options={TEAMS} onChange={filters.setTeam} />
+        </>
+      )}
 
       <button
         onClick={filters.reset}

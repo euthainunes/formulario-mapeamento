@@ -25,6 +25,11 @@ export function formatShortDate(iso: string): string {
   return formatDate(iso, "dd/MM");
 }
 
+/** Rótulo de mês (ex: "mar/2026") — usado quando um gráfico de série temporal está agrupado por mês (períodos longos, ver bucketTimeSeries no servidor). */
+export function formatMonthLabel(iso: string): string {
+  return formatDate(iso, "MMM/yyyy");
+}
+
 /** Formata valores vindos de callbacks de gráficos (Recharts), que podem chegar como
  * string, número, array ou undefined dependendo do tipo de série. */
 export function formatChartValue(value: unknown): string {

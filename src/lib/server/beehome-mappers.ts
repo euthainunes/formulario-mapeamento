@@ -36,6 +36,59 @@ export function parseDateRange(request: NextRequest): DateRange {
   return { from: isoDate(subDays(today, days - 1)), to: isoDate(today) };
 }
 
+export interface TimeSeriesPoint {
+  date: string;
+  value: number;
+}
+
+/**
+ * Ordena e agrupa uma série temporal diária conforme o tamanho do período,
+ * pra corrigir dois problemas reais achados numa auditoria (25/08/2026):
+ *
+ * 1. Nenhum dos 6 pontos do código que montavam série temporal (Dashboard,
+ *    Acessos, Conteúdos, Beezz, Audiência) ordenava por data — com poucos
+ *    dias isso não aparecia, mas com um período longo (ex: "Este ano") a
+ *    ordem virava a ordem que a BeeHome devolveu, não a cronológica, e o
+ *    gráfico desenhava ziguezague ("datas aleatórias").
+ * 2. Um período longo com granularidade diária tem pontos demais pra ler —
+ *    a BeeHome só documenta granularidade diária (nenhum endpoint devolve
+ *    agregado mensal pronto), então agrupar por mês em períodos longos é um
+ *    CÁLCULO nosso sobre dado real, não um dado que a BeeHome fornece direto
+ *    — daí o parâmetro `mode` explícito, pra deixar claro que é soma ou
+ *    média, nunca um valor inventado.
+ *
+ * Regra: período de até 62 dias (~2 meses) mantém granularidade diária —
+ * dá pra ler um ponto por dia sem poluir. Período maior agrupa por mês.
+ *
+ * `mode`:
+ * - "sum": pra métricas de contagem de evento (logins, publicações,
+ *   atividade) — total do mês é a soma dos dias.
+ * - "average": pra métricas de "estoque"/snapshot (usuários ativos num dia)
+ *   — somar dias de uma métrica que já é uma contagem de pessoas ativas
+ *   naquele dia infla o número sem sentido; a média diária do mês é o
+ *   agregado correto.
+ */
+export function bucketTimeSeries(points: TimeSeriesPoint[], range: DateRange, mode: "sum" | "average"): TimeSeriesPoint[] {
+  const sorted = [...points].sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+  const spanDays = differenceInCalendarDays(new Date(range.to), new Date(range.from)) + 1;
+  if (spanDays <= 62) return sorted;
+
+  const byMonth = new Map<string, number[]>();
+  for (const p of sorted) {
+    const monthKey = p.date.slice(0, 7); // yyyy-MM
+    const bucket = byMonth.get(monthKey) ?? [];
+    bucket.push(p.value);
+    byMonth.set(monthKey, bucket);
+  }
+
+  return Array.from(byMonth.entries())
+    .sort(([a], [b]) => (a < b ? -1 : a > b ? 1 : 0))
+    .map(([month, values]) => ({
+      date: `${month}-01`,
+      value: mode === "sum" ? values.reduce((s, v) => s + v, 0) : values.reduce((s, v) => s + v, 0) / values.length,
+    }));
+}
+
 /** Intervalo imediatamente anterior, com a mesma duração em dias. */
 export function previousRange(range: DateRange): DateRange {
   const from = new Date(range.from);

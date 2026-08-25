@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
-import { toNumber, parseDateRange, asList, toContentItem, extractIsoDate } from "@/lib/server/beehome-mappers";
+import { toNumber, parseDateRange, asList, toContentItem, extractIsoDate, bucketTimeSeries } from "@/lib/server/beehome-mappers";
 import { calcVariation } from "@/lib/metrics";
 import { ContentData, PerformanceDistribution } from "@/services/contracts/content.contract";
 import { ContentItem } from "@/types/content";
@@ -43,10 +43,12 @@ export async function GET(request: NextRequest) {
   }
 
   const chartRows = publishedChart.status === "fulfilled" ? asList(publishedChart.value) : [];
-  const publicationsByDate = chartRows
+  const publicationsByDateRaw = chartRows
     .map((row) => ({ date: extractIsoDate(row), value: toNumber(row.count ?? row.total ?? row.publications) }))
     .filter((p) => p.date);
-  const publicationsTotal = publicationsByDate.reduce((sum, p) => sum + p.value, 0);
+  const publicationsTotal = publicationsByDateRaw.reduce((sum, p) => sum + p.value, 0);
+  // "sum": publicação é um evento — agrupa por mês em períodos longos.
+  const publicationsByDate = bucketTimeSeries(publicationsByDateRaw, range, "sum");
 
   const mostViewed = mostViewedRaw.status === "fulfilled" ? asList(mostViewedRaw.value).map(toContentItem).filter((i): i is ContentItem => i !== null) : [];
   const mostLiked = mostLikedRaw.status === "fulfilled" ? asList(mostLikedRaw.value).map(toContentItem).filter((i): i is ContentItem => i !== null) : [];

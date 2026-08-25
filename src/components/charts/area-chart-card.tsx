@@ -9,9 +9,11 @@ interface AreaChartCardProps {
   data: TimeSeriesPoint[];
   color?: string;
   height?: number;
+  /** Formatador do rótulo de data — use formatMonthLabel quando o período for longo o bastante pra série vir agrupada por mês (ver bucketTimeSeries). */
+  dateFormatter?: (iso: string) => string;
 }
 
-export function AreaChartCard({ data, color = CHART_COLORS.info, height = 260 }: AreaChartCardProps) {
+export function AreaChartCard({ data, color = CHART_COLORS.info, height = 260, dateFormatter = formatShortDate }: AreaChartCardProps) {
   const gradientId = `area-gradient-${color.replace("#", "")}`;
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -25,7 +27,7 @@ export function AreaChartCard({ data, color = CHART_COLORS.info, height = 260 }:
         <CartesianGrid stroke={GRID_COLOR} vertical={false} />
         <XAxis
           dataKey="date"
-          tickFormatter={formatShortDate}
+          tickFormatter={dateFormatter}
           tick={{ fontSize: 11, fill: AXIS_COLOR }}
           axisLine={{ stroke: GRID_COLOR }}
           tickLine={false}
@@ -33,7 +35,7 @@ export function AreaChartCard({ data, color = CHART_COLORS.info, height = 260 }:
         />
         <YAxis tick={{ fontSize: 11, fill: AXIS_COLOR }} axisLine={false} tickLine={false} tickFormatter={formatNumber} width={44} />
         <Tooltip
-          labelFormatter={(v) => formatShortDate(String(v))}
+          labelFormatter={(v) => dateFormatter(String(v))}
           formatter={(value) => formatChartValue(value)}
           contentStyle={{ borderRadius: 8, border: `1px solid ${GRID_COLOR}`, fontSize: 12 }}
         />

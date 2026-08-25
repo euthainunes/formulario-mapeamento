@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
-import { toNumber, parseDateRange, asList, kpisFromPeopleToday, toRankingItems, toBeezzPost, deviceBreakdownFrom, extractIsoDate } from "@/lib/server/beehome-mappers";
+import { toNumber, parseDateRange, asList, kpisFromPeopleToday, toRankingItems, toBeezzPost, deviceBreakdownFrom, extractIsoDate, bucketTimeSeries } from "@/lib/server/beehome-mappers";
 import { gatherInsightsFactsheet } from "@/lib/server/insights-data";
 import { generateAutoInsights } from "@/lib/server/ai-insights";
 import { ExecutiveDashboardData } from "@/types/dashboard";
@@ -51,14 +51,19 @@ export async function GET(request: NextRequest) {
   const today = peopleToday.status === "fulfilled" ? (peopleToday.value as Record<string, unknown>) : {};
 
   const chartRows = peopleChart.status === "fulfilled" ? asList(peopleChart.value) : [];
-  const activeUsersEvolution = chartRows
+  const activeUsersEvolutionRaw = chartRows
     .map((row) => ({ date: extractIsoDate(row), value: toNumber(row.activeUsers) }))
     .filter((p) => p.date);
+  // "average": usuários ativos é uma contagem por dia (estoque), não um
+  // evento — somar os dias de um mês infla o número sem sentido.
+  const activeUsersEvolution = bucketTimeSeries(activeUsersEvolutionRaw, range, "average");
 
   const loginRows = loginsByDate.status === "fulfilled" ? asList(loginsByDate.value) : [];
-  const accessEvolution = loginRows
+  const accessEvolutionRaw = loginRows
     .map((row) => ({ date: extractIsoDate(row), value: toNumber(row.total ?? row.count ?? row.logins) }))
     .filter((p) => p.date);
+  // "sum": login é um evento — total do mês é a soma dos dias.
+  const accessEvolution = bucketTimeSeries(accessEvolutionRaw, range, "sum");
 
   const deviceBreakdown = device.status === "fulfilled" ? deviceBreakdownFrom(asList(device.value)) : [];
 

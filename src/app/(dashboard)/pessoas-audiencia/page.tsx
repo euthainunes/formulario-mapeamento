@@ -15,10 +15,13 @@ import { DataTable } from "@/components/tables/data-table";
 import { collaboratorColumns } from "@/components/tables/columns/collaborators-columns";
 import { ExportButtons } from "@/components/shared/export-buttons";
 import { CHART_COLORS } from "@/lib/chart-colors";
+import { isLongRange } from "@/lib/date-range";
+import { formatMonthLabel } from "@/lib/formatters";
 
 export default function PessoasAudienciaPage() {
   const filters = useGlobalFilters();
   const { data, isLoading, isError } = useAudienceData(filters);
+  const dateFormatter = isLongRange(filters.dateRange) ? formatMonthLabel : undefined;
 
   return (
     <RouteGuard permission="audience.view">
@@ -40,7 +43,7 @@ export default function PessoasAudienciaPage() {
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
               <SectionCard title="Evolução de ativos" className="lg:col-span-2" description="Colaboradores ativos por data, no período selecionado.">
-                <AreaChartCard data={data.activeEvolution} color={CHART_COLORS.primary} />
+                <AreaChartCard data={data.activeEvolution} color={CHART_COLORS.primary} dateFormatter={dateFormatter} />
               </SectionCard>
               <SectionCard title="Distribuição por dispositivo">
                 <DonutChartCard data={data.deviceBreakdown.map((d) => ({ label: d.device, value: d.count }))} />

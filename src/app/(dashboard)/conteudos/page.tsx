@@ -16,10 +16,13 @@ import { ExportButtons } from "@/components/shared/export-buttons";
 import { Tabs } from "@/components/ui/tabs";
 import { CHART_COLORS } from "@/lib/chart-colors";
 import { Info } from "lucide-react";
+import { isLongRange } from "@/lib/date-range";
+import { formatMonthLabel } from "@/lib/formatters";
 
 export default function ConteudosPage() {
   const filters = useGlobalFilters();
   const { data, isLoading, isError } = useContentData(filters);
+  const dateFormatter = isLongRange(filters.dateRange) ? formatMonthLabel : undefined;
 
   return (
     <RouteGuard permission="content.view">
@@ -54,7 +57,7 @@ export default function ConteudosPage() {
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
               <SectionCard title="Publicações por data">
-                <LineChartCard data={data.publicationsByDate} color={CHART_COLORS.primary} />
+                <LineChartCard data={data.publicationsByDate} color={CHART_COLORS.primary} dateFormatter={dateFormatter} />
               </SectionCard>
               <SectionCard title="Distribuição de desempenho">
                 <BarChartCard

@@ -9,16 +9,18 @@ interface LineChartCardProps {
   data: TimeSeriesPoint[];
   color?: string;
   height?: number;
+  /** Formatador do rótulo de data — use formatMonthLabel quando o período for longo o bastante pra série vir agrupada por mês (ver bucketTimeSeries). */
+  dateFormatter?: (iso: string) => string;
 }
 
-export function LineChartCard({ data, color = CHART_COLORS.primary, height = 260 }: LineChartCardProps) {
+export function LineChartCard({ data, color = CHART_COLORS.primary, height = 260, dateFormatter = formatShortDate }: LineChartCardProps) {
   return (
     <ResponsiveContainer width="100%" height={height}>
       <LineChart data={data} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
         <CartesianGrid stroke={GRID_COLOR} vertical={false} />
         <XAxis
           dataKey="date"
-          tickFormatter={formatShortDate}
+          tickFormatter={dateFormatter}
           tick={{ fontSize: 11, fill: AXIS_COLOR }}
           axisLine={{ stroke: GRID_COLOR }}
           tickLine={false}
@@ -26,7 +28,7 @@ export function LineChartCard({ data, color = CHART_COLORS.primary, height = 260
         />
         <YAxis tick={{ fontSize: 11, fill: AXIS_COLOR }} axisLine={false} tickLine={false} tickFormatter={formatNumber} width={44} />
         <Tooltip
-          labelFormatter={(v) => formatShortDate(String(v))}
+          labelFormatter={(v) => dateFormatter(String(v))}
           formatter={(value) => formatChartValue(value)}
           contentStyle={{ borderRadius: 8, border: `1px solid ${GRID_COLOR}`, fontSize: 12 }}
         />

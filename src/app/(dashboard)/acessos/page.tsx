@@ -15,7 +15,8 @@ import { HeatmapGrid } from "@/components/charts/heatmap-grid";
 import { DataTable } from "@/components/tables/data-table";
 import { ExportButtons } from "@/components/shared/export-buttons";
 import { CHART_COLORS } from "@/lib/chart-colors";
-import { formatDate, formatNumber } from "@/lib/formatters";
+import { formatDate, formatNumber, formatMonthLabel } from "@/lib/formatters";
+import { isLongRange } from "@/lib/date-range";
 
 interface LoginRow {
   date: string;
@@ -30,6 +31,7 @@ const columns: ColumnDef<LoginRow, unknown>[] = [
 export default function AcessosPage() {
   const filters = useGlobalFilters();
   const { data, isLoading, isError } = useAccessData(filters);
+  const dateFormatter = isLongRange(filters.dateRange) ? formatMonthLabel : undefined;
 
   return (
     <RouteGuard permission="access.view">
@@ -51,7 +53,7 @@ export default function AcessosPage() {
 
             {data.loginsByDate.length > 0 && (
               <SectionCard title="Logins por data">
-                <LineChartCard data={data.loginsByDate} color={CHART_COLORS.primary} />
+                <LineChartCard data={data.loginsByDate} color={CHART_COLORS.primary} dateFormatter={dateFormatter} />
               </SectionCard>
             )}
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { differenceInCalendarDays } from "date-fns";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
-import { toNumber, parseDateRange, previousRange, asList, extractIsoDate } from "@/lib/server/beehome-mappers";
+import { toNumber, parseDateRange, previousRange, asList, extractIsoDate, bucketTimeSeries } from "@/lib/server/beehome-mappers";
 import { calcVariation } from "@/lib/metrics";
 import { AccessData, HourAverage, WeekdayAverage } from "@/services/contracts/access.contract";
 import { KpiCard } from "@/types/metrics";
@@ -79,9 +79,13 @@ export async function GET(request: NextRequest) {
     .filter((w): w is WeekdayAverage => w !== null);
 
   const dateRows = loginsByDate.status === "fulfilled" ? asList(loginsByDate.value) : [];
+  // Tabela mantém granularidade diária (tem busca/paginação própria) mas
+  // precisa vir ordenada — sem isso a ordem é a que a BeeHome devolveu, não
+  // a cronológica.
   const loginTable = dateRows
     .map((row) => ({ date: extractIsoDate(row), total: toNumber(row.total ?? row.count ?? row.logins) }))
-    .filter((r) => r.date);
+    .filter((r) => r.date)
+    .sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
 
   const noComparison = { current: 0, previous: 0, comparable: false, percentChange: null, direction: "none" as const };
 
@@ -123,7 +127,12 @@ export async function GET(request: NextRequest) {
 
   const data: AccessData = {
     kpis,
-    loginsByDate: loginTable.map((t) => ({ date: t.date, value: t.total })),
+    // "sum": login é um evento — agrupa por mês em períodos longos.
+    loginsByDate: bucketTimeSeries(
+      loginTable.map((t) => ({ date: t.date, value: t.total })),
+      range,
+      "sum",
+    ),
     averageByHour,
     averageByWeekday,
     heatmap: [], // ver comentário no topo do arquivo

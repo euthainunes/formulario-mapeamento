@@ -14,10 +14,13 @@ import { beezzColumns } from "@/components/tables/columns/beezz-columns";
 import { RankingList } from "@/components/dashboard/ranking-list";
 import { ExportButtons } from "@/components/shared/export-buttons";
 import { CHART_COLORS } from "@/lib/chart-colors";
+import { isLongRange } from "@/lib/date-range";
+import { formatMonthLabel } from "@/lib/formatters";
 
 export default function BeezzPage() {
   const filters = useGlobalFilters();
   const { data, isLoading, isError } = useBeezzData(filters);
+  const dateFormatter = isLongRange(filters.dateRange) ? formatMonthLabel : undefined;
 
   return (
     <RouteGuard permission="beezz.view">
@@ -44,7 +47,7 @@ export default function BeezzPage() {
 
             {data.activityTimeline.length > 0 && (
               <SectionCard title="Linha do tempo de atividade">
-                <AreaChartCard data={data.activityTimeline} color={CHART_COLORS.primary} />
+                <AreaChartCard data={data.activityTimeline} color={CHART_COLORS.primary} dateFormatter={dateFormatter} />
               </SectionCard>
             )}
 

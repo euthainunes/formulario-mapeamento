@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
-import { toNumber, parseDateRange, asList, toBeezzPost, toCreatorRanking, extractIsoDate } from "@/lib/server/beehome-mappers";
+import { toNumber, parseDateRange, asList, toBeezzPost, toCreatorRanking, extractIsoDate, bucketTimeSeries } from "@/lib/server/beehome-mappers";
 import { calcVariation } from "@/lib/metrics";
 import { BeezzData } from "@/services/contracts/beezz.contract";
 import { BeezzPost } from "@/types/content";
@@ -53,9 +53,11 @@ export async function GET(request: NextRequest) {
   const topCreators = creatorTop.status === "fulfilled" ? toCreatorRanking(creatorTop.value) : [];
 
   const timelineRows = timeline.status === "fulfilled" ? asList(timeline.value) : [];
-  const activityTimeline = timelineRows
+  const activityTimelineRaw = timelineRows
     .map((row) => ({ date: extractIsoDate(row), value: toNumber(row.count ?? row.total) }))
     .filter((p) => p.date);
+  // "sum": atividade é uma contagem de evento — agrupa por mês em períodos longos.
+  const activityTimeline = bucketTimeSeries(activityTimelineRaw, range, "sum");
 
   const totalBeezz = totalCount.status === "fulfilled" ? toNumber((totalCount.value as Record<string, unknown>).count ?? totalCount.value) : 0;
   const totalLikes = topLiked.reduce((sum, item) => sum + item.value, 0);

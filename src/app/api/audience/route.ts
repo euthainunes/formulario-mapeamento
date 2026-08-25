@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
-import { toNumber, parseDateRange, asList, kpisFromPeopleToday, deviceBreakdownFrom, extractIsoDate } from "@/lib/server/beehome-mappers";
+import { toNumber, parseDateRange, asList, kpisFromPeopleToday, deviceBreakdownFrom, extractIsoDate, bucketTimeSeries } from "@/lib/server/beehome-mappers";
 import { AudienceData, AudienceComparisonPoint } from "@/services/contracts/audience.contract";
 
 /**
@@ -43,9 +43,15 @@ export async function GET(request: NextRequest) {
   const today = peopleToday.status === "fulfilled" ? (peopleToday.value as Record<string, unknown>) : {};
 
   const chartRows = peopleChart.status === "fulfilled" ? asList(peopleChart.value) : [];
-  const activeEvolution = chartRows
+  const activeEvolutionRaw = chartRows
     .map((row) => ({ date: extractIsoDate(row), value: toNumber(row.activeUsers) }))
     .filter((p) => p.date);
+  // "average": usuários ativos é uma contagem por dia (estoque), não um
+  // evento — somar os dias de um mês infla o número sem sentido. Também
+  // corrige o bug relatado: sem ordenar por data, um período longo (ex:
+  // "Este ano") desenhava o gráfico com a ordem que a BeeHome devolveu, não
+  // a cronológica — parecia "datas aleatórias".
+  const activeEvolution = bucketTimeSeries(activeEvolutionRaw, range, "average");
 
   const deviceBreakdown = device.status === "fulfilled" ? deviceBreakdownFrom(asList(device.value)) : [];
 
