@@ -62,8 +62,6 @@ export const TEAM_MANAGEMENT_SUBNAV = [
   { label: "Quadro", href: "/gestao-do-time/quadro", permission: "team-management.view" as PermissionKey },
   { label: "Tarefas", href: "/gestao-do-time/tarefas", permission: "team-management.view" as PermissionKey },
   { label: "Carga do Time", href: "/gestao-do-time/carga", permission: "team-management.view" as PermissionKey },
-  { label: "Campanhas", href: "/gestao-do-time/campanhas", permission: "team-management.view" as PermissionKey },
-  { label: "Agenda", href: "/gestao-do-time/agenda", permission: "team-management.view" as PermissionKey },
   { label: "Documentos", href: "/gestao-do-time/documentos", permission: "team-management.view" as PermissionKey },
 ];
 

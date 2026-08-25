@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { Send, BrainCircuit, CalendarClock, FileStack } from "lucide-react";
+import { Send, BrainCircuit, FileStack } from "lucide-react";
 import { RouteGuard } from "@/components/layout/route-guard";
 import { PageHeader } from "@/components/shared/page-header";
 import { SectionCard } from "@/components/shared/section-card";
@@ -10,14 +10,12 @@ import { StateWrapper } from "@/components/shared/state-wrapper";
 import { KpiCard } from "@/components/shared/kpi-card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { StackedBarChartCard } from "@/components/charts/stacked-bar-chart-card";
 import { CHART_COLORS } from "@/lib/chart-colors";
 import { TeamNav } from "@/components/team-management/team-nav";
 import { IntegrationNotice } from "@/components/team-management/integration-notice";
 import { OperationScoreCard } from "@/components/team-management/operation-score-card";
 import { TeamAlertsPanel } from "@/components/team-management/team-alerts-panel";
-import { CriticalityBadge } from "@/components/team-management/campaign-badge";
 import { TeamInsightAnswerCard } from "@/components/team-management/team-insight-answer-card";
 import { QuestionList } from "@/components/insights/question-list";
 import { useTeamOverview } from "@/hooks/use-team-overview";
@@ -75,93 +73,32 @@ export default function GestaoDoTimePage() {
               />
             </SectionCard>
 
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <SectionCard title="Campanhas em risco" description="Maiores scores de risco entre as campanhas ativas.">
-                {data.riskCampaigns.length === 0 ? (
-                  <p className="text-sm text-text-secondary py-4 text-center">Nenhuma campanha em risco relevante no momento.</p>
-                ) : (
-                  <ul className="space-y-3">
-                    {data.riskCampaigns.map((c) => (
-                      <li key={c.campaign.id}>
-                        <Link
-                          href={`/gestao-do-time/campanhas/${c.campaign.id}`}
-                          className="flex items-center justify-between gap-3 rounded-lg border border-border p-3 hover:border-brand-primary transition-colors"
-                        >
-                          <div className="min-w-0">
-                            <p className="text-sm font-medium text-text-primary truncate">{c.campaign.name}</p>
-                            <p className="text-xs text-text-secondary mt-0.5">{c.risk.signals[0]}</p>
-                          </div>
-                          <div className="flex items-center gap-2 shrink-0">
-                            <CriticalityBadge criticality={c.campaign.criticality} />
-                            <Badge tone={c.risk.score >= 80 ? "critical" : "warning"}>Risco {c.risk.score}</Badge>
-                          </div>
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </SectionCard>
+            <SectionCard title="Alertas críticos" description="Gerados por regra a partir dos dados do Planner simulado.">
+              <TeamAlertsPanel alerts={data.criticalAlerts} />
+            </SectionCard>
 
-              <SectionCard title="Alertas críticos" description="Gerados por regra a partir dos dados do Planner simulado.">
-                <TeamAlertsPanel alerts={data.criticalAlerts} />
-              </SectionCard>
-            </div>
-
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <SectionCard title="Agenda institucional da semana" description="Calendário compartilhado do time — sem participantes individuais.">
-                <div className="flex items-start gap-3">
-                  <CalendarClock className="h-8 w-8 text-brand-primary shrink-0" />
-                  <div className="grid grid-cols-2 gap-3 flex-1">
-                    <div>
-                      <p className="text-xs text-text-secondary">Horas em reunião (próx. 7 dias)</p>
-                      <p className="text-lg font-semibold text-text-primary">{data.agendaSummary.hoursNext7Days.toFixed(1)}h</p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-text-secondary">Reuniões por semana</p>
-                      <p className="text-lg font-semibold text-text-primary">
-                        {data.agendaSummary.meetingsPerWeek != null ? data.agendaSummary.meetingsPerWeek.toFixed(1) : "—"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-text-secondary">Densidade de agenda</p>
-                      <p className="text-lg font-semibold text-text-primary">
-                        {data.agendaSummary.density != null ? formatPercent(data.agendaSummary.density) : "—"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-text-secondary">Capacidade semanal</p>
-                      <p className="text-lg font-semibold text-text-primary">{data.agendaSummary.capacityHoursPerWeek}h</p>
-                    </div>
+            <SectionCard title="Saúde documental" description="Cobertura de documentos da equipe (SharePoint simulado).">
+              <div className="flex items-start gap-3">
+                <FileStack className="h-8 w-8 text-brand-primary shrink-0" />
+                <div className="grid grid-cols-2 gap-3 flex-1">
+                  <div>
+                    <p className="text-xs text-text-secondary">Cobertura documental</p>
+                    <p className="text-lg font-semibold text-text-primary">
+                      {data.documentSummary.coverage.rate != null ? formatPercent(data.documentSummary.coverage.rate) : "—"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-text-secondary">Documentos desatualizados</p>
+                    <p className="text-lg font-semibold text-text-primary">
+                      {data.documentSummary.staleCount} de {data.documentSummary.totalCount}
+                    </p>
                   </div>
                 </div>
-                <Link href="/gestao-do-time/agenda" className="text-xs font-medium text-brand-primary hover:underline mt-3 inline-block">
-                  Ver agenda completa
-                </Link>
-              </SectionCard>
-
-              <SectionCard title="Saúde documental" description="Cobertura de documentos vinculados às campanhas (SharePoint simulado).">
-                <div className="flex items-start gap-3">
-                  <FileStack className="h-8 w-8 text-brand-primary shrink-0" />
-                  <div className="grid grid-cols-2 gap-3 flex-1">
-                    <div>
-                      <p className="text-xs text-text-secondary">Cobertura documental</p>
-                      <p className="text-lg font-semibold text-text-primary">
-                        {data.documentSummary.coverage.rate != null ? formatPercent(data.documentSummary.coverage.rate) : "—"}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-xs text-text-secondary">Documentos desatualizados</p>
-                      <p className="text-lg font-semibold text-text-primary">
-                        {data.documentSummary.staleCount} de {data.documentSummary.totalCount}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <Link href="/gestao-do-time/documentos" className="text-xs font-medium text-brand-primary hover:underline mt-3 inline-block">
-                  Ver documentos
-                </Link>
-              </SectionCard>
-            </div>
+              </div>
+              <Link href="/gestao-do-time/documentos" className="text-xs font-medium text-brand-primary hover:underline mt-3 inline-block">
+                Ver documentos
+              </Link>
+            </SectionCard>
 
             <SectionCard title="Insights automáticos" description="Observações calculadas por regra a partir dos dados desta visão geral.">
               {data.autoInsights.length === 0 ? (
