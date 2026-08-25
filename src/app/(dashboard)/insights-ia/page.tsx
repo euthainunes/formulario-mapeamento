@@ -10,13 +10,14 @@ import { Button } from "@/components/ui/button";
 import { QuestionList } from "@/components/insights/question-list";
 import { AnswerCard } from "@/components/insights/answer-card";
 import { useSuggestedQuestions, useAskInsight } from "@/hooks/use-insights";
-import { InsightAnswer } from "@/types/insight";
+import { InsightAskResult } from "@/services/contracts/insights.contract";
+import { appConfig } from "@/lib/app-config";
 
 export default function InsightsIaPage() {
   const { data: questions } = useSuggestedQuestions();
   const askInsight = useAskInsight();
   const [input, setInput] = useState("");
-  const [conversation, setConversation] = useState<{ question: string; answer: InsightAnswer | null }[]>([]);
+  const [conversation, setConversation] = useState<{ question: string; answer: InsightAskResult }[]>([]);
 
   function handleAsk(question: string) {
     if (!question.trim()) return;
@@ -30,15 +31,30 @@ export default function InsightsIaPage() {
 
   return (
     <RouteGuard permission="insights.view">
-      <PageHeader title="Insights com IA" description="Respostas pré-definidas a partir de dados fictícios — nenhuma chamada real a modelos de IA é feita nesta versão." />
+      <PageHeader
+        title="Insights com IA"
+        description={
+          appConfig.dataSource === "mock"
+            ? "Respostas pré-definidas a partir de dados fictícios — nenhuma chamada real a modelos de IA é feita nesta versão."
+            : "Respostas geradas por IA a partir dos dados reais já validados da BeeHome — nunca inventa um dado ausente na fonte."
+        }
+      />
 
       <div className="flex items-start gap-2 rounded-lg border border-info/25 bg-info/5 p-3.5 text-xs text-text-secondary mb-5">
         <BrainCircuit className="h-4 w-4 text-info shrink-0 mt-0.5" />
-        <p>
-          Este módulo simula um assistente de inteligência sobre os dados da Comunicação. As respostas vêm de um
-          dicionário fixo de perguntas e respostas — não há processamento de linguagem natural real nem acesso a
-          dados fora deste ambiente demonstrativo.
-        </p>
+        {appConfig.dataSource === "mock" ? (
+          <p>
+            Este módulo simula um assistente de inteligência sobre os dados da Comunicação. As respostas vêm de um
+            dicionário fixo de perguntas e respostas — não há processamento de linguagem natural real nem acesso a
+            dados fora deste ambiente demonstrativo.
+          </p>
+        ) : (
+          <p>
+            As respostas citam de qual dado real vieram (&ldquo;métricas usadas&rdquo;) e como foram calculadas.
+            Quando a fonte conectada não tiver dado suficiente, a resposta é &ldquo;não foi possível calcular&rdquo;
+            com o motivo — nunca um valor inventado.
+          </p>
+        )}
       </div>
 
       <div className="space-y-5">
@@ -68,17 +84,14 @@ export default function InsightsIaPage() {
 
         <div className="space-y-4">
           {conversation.map((item, idx) =>
-            item.answer ? (
+            "id" in item.answer ? (
               <AnswerCard key={idx} answer={item.answer} />
             ) : (
               <div key={idx} className="flex items-start gap-2 rounded-lg border border-border bg-surface p-4 text-sm">
                 <Info className="h-4 w-4 text-text-secondary shrink-0 mt-0.5" />
                 <div>
                   <p className="text-text-primary font-medium mb-1">{item.question}</p>
-                  <p className="text-text-secondary">
-                    Dados insuficientes para essa pergunta nesta versão demonstrativa. Tente uma das perguntas
-                    sugeridas acima.
-                  </p>
+                  <p className="text-text-secondary">{item.answer.message}</p>
                 </div>
               </div>
             )

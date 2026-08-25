@@ -1,11 +1,11 @@
 import { appConfig } from "@/lib/app-config";
-import { IInsightsRepository } from "@/services/contracts/insights.contract";
+import { IInsightsRepository, InsightAskResult } from "@/services/contracts/insights.contract";
 import { MockInsightsRepository } from "@/services/mock/insights.mock";
-import { InsightAnswer, InsightSummary } from "@/types/insight";
+import { InsightSummary } from "@/types/insight";
 import { apiFetch } from "@/lib/client/api-fetch";
 
-/** POST /insights/ask devolve { answer: null, message } quando nenhuma regra determinística casa com a pergunta — sem o campo `id`. Nesse caso o contrato do front-end espera `null`. */
-type AskResponse = InsightAnswer | { answer: null; message: string };
+/** POST /insights/ask devolve { answer: null, message } quando a IA não consegue responder com segurança — sem o campo `id`. O `message` (motivo real) é preservado, nunca descartado. */
+type AskResponse = InsightAskResult | { answer: null; message: string };
 
 class ApiInsightsRepository implements IInsightsRepository {
   async getSuggestedQuestions(): Promise<string[]> {
@@ -14,12 +14,12 @@ class ApiInsightsRepository implements IInsightsRepository {
   async getAutoInsights(): Promise<InsightSummary[]> {
     return apiFetch<InsightSummary[]>("/api/insights/auto");
   }
-  async ask(question: string): Promise<InsightAnswer | null> {
+  async ask(question: string): Promise<InsightAskResult> {
     const response = await apiFetch<AskResponse>("/api/insights/ask", {
       method: "POST",
       body: JSON.stringify({ question }),
     });
-    return "id" in response ? response : null;
+    return "id" in response ? response : { message: response.message };
   }
 }
 
