@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
-import { toNumber, parseDateRange, asList, kpisFromPeopleToday, toRankingItems, deviceBreakdownFrom } from "@/lib/server/beehome-mappers";
+import { toNumber, parseDateRange, asList, kpisFromPeopleToday, toRankingItems, deviceBreakdownFrom, extractIsoDate } from "@/lib/server/beehome-mappers";
 import { ExecutiveDashboardData } from "@/types/dashboard";
 
 /**
@@ -49,12 +49,12 @@ export async function GET(request: NextRequest) {
 
   const chartRows = peopleChart.status === "fulfilled" ? asList(peopleChart.value) : [];
   const activeUsersEvolution = chartRows
-    .map((row) => ({ date: String(row.dayString ?? row.date ?? ""), value: toNumber(row.activeUsers) }))
+    .map((row) => ({ date: extractIsoDate(row), value: toNumber(row.activeUsers) }))
     .filter((p) => p.date);
 
   const loginRows = loginsByDate.status === "fulfilled" ? asList(loginsByDate.value) : [];
   const accessEvolution = loginRows
-    .map((row) => ({ date: String(row.dayString ?? row.date ?? ""), value: toNumber(row.total ?? row.count ?? row.logins) }))
+    .map((row) => ({ date: extractIsoDate(row), value: toNumber(row.total ?? row.count ?? row.logins) }))
     .filter((p) => p.date);
 
   const deviceBreakdown = device.status === "fulfilled" ? deviceBreakdownFrom(asList(device.value)) : [];

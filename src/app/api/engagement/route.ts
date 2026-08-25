@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
-import { toNumber, parseDateRange, asList } from "@/lib/server/beehome-mappers";
+import { toNumber, parseDateRange, asList, extractIsoDate } from "@/lib/server/beehome-mappers";
 import { calcVariation } from "@/lib/metrics";
 import { EngagementData } from "@/services/contracts/engagement.contract";
 import { REACTION_TYPES, REACTION_LABELS, ReactionTotal } from "@/types/content";
@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
     let typeTotal = 0;
 
     for (const row of rows) {
-      const date = String(row.dayString ?? row.date ?? "");
+      const date = extractIsoDate(row);
       const value = toNumber(row.count ?? row.value ?? row.total);
       typeTotal += value;
       if (!date) continue;

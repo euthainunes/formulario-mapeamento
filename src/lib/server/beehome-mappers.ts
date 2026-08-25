@@ -46,6 +46,24 @@ export function previousRange(range: DateRange): DateRange {
   return { from: isoDate(prevFrom), to: isoDate(prevTo) };
 }
 
+/**
+ * Extrai a data (ISO, yyyy-MM-dd) de uma linha de série temporal da
+ * BeeHome. Confirmado com uma chamada real a `peopleChart`: o campo `day`
+ * vem ISO completo ("2026-07-26T00:00:00.000Z"); `dayString` vem em
+ * DD/MM/AAAA ("26/07/2026") — formato errado para o `TimeSeriesPoint.date`
+ * do front (que espera yyyy-MM-dd). Prioriza `day`; só recorre a
+ * `dayString` (convertendo o formato) se `day` não vier.
+ */
+export function extractIsoDate(row: Record<string, unknown>): string {
+  if (typeof row.day === "string" && row.day.length >= 10) return row.day.slice(0, 10);
+  if (typeof row.date === "string" && /^\d{4}-\d{2}-\d{2}/.test(row.date)) return row.date.slice(0, 10);
+  if (typeof row.dayString === "string") {
+    const m = row.dayString.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+    if (m) return `${m[3]}-${m[2]}-${m[1]}`;
+  }
+  return "";
+}
+
 /** Extrai uma lista de registros de um payload cujo envelope exato (array direto x `{data:[...]}` x paginado) não está 100% confirmado para todo endpoint. */
 export function asList(payload: unknown): Record<string, unknown>[] {
   if (Array.isArray(payload)) return payload as Record<string, unknown>[];
@@ -140,14 +158,22 @@ export function toBeezzPost(row: Record<string, unknown>, index: number): BeezzP
 }
 
 /** Constrói o breakdown por dispositivo (count + percent) a partir da resposta de `device`. */
+/**
+ * Constrói o breakdown por dispositivo a partir da resposta real do
+ * endpoint `device` — confirmado com uma chamada real: NÃO é uma linha por
+ * dispositivo (`{device, count}`), é uma série temporal (uma linha por
+ * dia) com três colunas fixas por linha: `countDesktop`, `countMobile`,
+ * `countTablet`. Soma essas três colunas ao longo de todas as linhas do
+ * período para chegar no total por dispositivo.
+ */
 export function deviceBreakdownFrom(rows: Record<string, unknown>[]) {
-  const total = rows.reduce((sum, row) => sum + toNumber(row.count ?? row.total), 0);
-  return rows
-    .map((row) => {
-      const count = toNumber(row.count ?? row.total);
-      const name = String(row.device ?? row.name ?? "");
-      if (!name) return null;
-      return { device: name, count, percent: total > 0 ? (count / total) * 100 : 0 };
-    })
-    .filter((d): d is { device: string; count: number; percent: number } => d !== null);
+  const totals = {
+    desktop: rows.reduce((sum, row) => sum + toNumber(row.countDesktop), 0),
+    mobile: rows.reduce((sum, row) => sum + toNumber(row.countMobile), 0),
+    tablet: rows.reduce((sum, row) => sum + toNumber(row.countTablet), 0),
+  };
+  const grandTotal = totals.desktop + totals.mobile + totals.tablet;
+  return (Object.entries(totals) as [string, number][])
+    .filter(([, count]) => count > 0)
+    .map(([device, count]) => ({ device, count, percent: grandTotal > 0 ? (count / grandTotal) * 100 : 0 }));
 }

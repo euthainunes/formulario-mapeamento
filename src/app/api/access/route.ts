@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { differenceInCalendarDays } from "date-fns";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
-import { toNumber, parseDateRange, previousRange, asList } from "@/lib/server/beehome-mappers";
+import { toNumber, parseDateRange, previousRange, asList, extractIsoDate } from "@/lib/server/beehome-mappers";
 import { calcVariation } from "@/lib/metrics";
 import { AccessData, HourAverage, WeekdayAverage } from "@/services/contracts/access.contract";
 import { KpiCard } from "@/types/metrics";
@@ -73,7 +73,7 @@ export async function GET(request: NextRequest) {
 
   const dateRows = loginsByDate.status === "fulfilled" ? asList(loginsByDate.value) : [];
   const loginTable = dateRows
-    .map((row) => ({ date: String(row.dayString ?? row.date ?? ""), total: toNumber(row.total ?? row.count ?? row.logins) }))
+    .map((row) => ({ date: extractIsoDate(row), total: toNumber(row.total ?? row.count ?? row.logins) }))
     .filter((r) => r.date);
 
   const kpis: KpiCard[] = [

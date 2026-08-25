@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
-import { toNumber, parseDateRange, asList, toBeezzPost, toRankingItems } from "@/lib/server/beehome-mappers";
+import { toNumber, parseDateRange, asList, toBeezzPost, toRankingItems, extractIsoDate } from "@/lib/server/beehome-mappers";
 import { calcVariation } from "@/lib/metrics";
 import { BeezzData } from "@/services/contracts/beezz.contract";
 import { BeezzPost } from "@/types/content";
@@ -51,7 +51,7 @@ export async function GET(request: NextRequest) {
 
   const timelineRows = timeline.status === "fulfilled" ? asList(timeline.value) : [];
   const activityTimeline = timelineRows
-    .map((row) => ({ date: String(row.dayString ?? row.date ?? ""), value: toNumber(row.count ?? row.total) }))
+    .map((row) => ({ date: extractIsoDate(row), value: toNumber(row.count ?? row.total) }))
     .filter((p) => p.date);
 
   const totalBeezz = totalCount.status === "fulfilled" ? toNumber((totalCount.value as Record<string, unknown>).count ?? totalCount.value) : 0;

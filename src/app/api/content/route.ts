@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
-import { toNumber, parseDateRange, asList, toContentItem } from "@/lib/server/beehome-mappers";
+import { toNumber, parseDateRange, asList, toContentItem, extractIsoDate } from "@/lib/server/beehome-mappers";
 import { calcVariation } from "@/lib/metrics";
 import { ContentData, PerformanceDistribution } from "@/services/contracts/content.contract";
 import { ContentItem } from "@/types/content";
@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
   const chartRows = publishedChart.status === "fulfilled" ? asList(publishedChart.value) : [];
   const publicationsByDate = chartRows
-    .map((row) => ({ date: String(row.dayString ?? row.date ?? ""), value: toNumber(row.count ?? row.total ?? row.publications) }))
+    .map((row) => ({ date: extractIsoDate(row), value: toNumber(row.count ?? row.total ?? row.publications) }))
     .filter((p) => p.date);
   const publicationsTotal = publicationsByDate.reduce((sum, p) => sum + p.value, 0);
 

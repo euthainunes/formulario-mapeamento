@@ -30,10 +30,23 @@ export const BEEHOME_ENDPOINTS = {
   peopleChart: "/api/insights/people/chart",
   device: "/api/insights/people/chart/device",
   peopleTable: "/api/insights/people/chart/table",
+  // ⚠️ CONFIRMADO COM CHAMADA REAL (25/08/2026): este path retorna
+  // {"message":"Endpoint nao encontrado: GET /api/insights/reaction"} — ou
+  // seja, está ERRADO ou desatualizado no documento oficial da BeeHome.
+  // Path correto ainda não confirmado — não adivinhar, perguntar ao time
+  // BeeHome. Enquanto isso, /api/engagement degrada com segurança (fica
+  // vazio) em vez de quebrar.
   reaction: "/api/insights/reaction",
   auditLogins: "/audit/logins",
   auditLoginsByDate: "/audit/loginsByDate",
   auditAverageLoginsByHour: "/audit/averageLoginsByHour",
+  // ⚠️ CONFIRMADO COM CHAMADA REAL (25/08/2026): o servidor da BeeHome
+  // devolve 500 (NullPointerException: "date must not be null", em
+  // AuditRecordBusinessImpl.countAverageLoginsDay) com startDate/endDate —
+  // os mesmos params documentados que funcionam em auditLoginsByDate. Bug
+  // do lado deles nesse endpoint específico, não nosso — reportar ao time
+  // BeeHome. /api/access já degrada com segurança (averageByWeekday fica
+  // vazio) em vez de quebrar.
   auditAverageLoginsByDay: "/audit/averageLoginsByDay",
   insightsAccessByYear: "/api/insights/access",
   newsListMostViewedNews: "/news/listMostViewedNews",

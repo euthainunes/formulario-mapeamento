@@ -57,7 +57,13 @@ export const BEEHOME_ENDPOINTS = {
   peopleTable: '/api/insights/people/chart/table',
 
   // ---- Insights de reação (tela /insights/reaction — estritamente admin) — NOVO, não existia no catálogo anterior ----
-  /** GET. Params: type, startDate, endDate, groupId, companyId, companyDepartmentId, singleAccess. `type` é um dos 12 valores documentados: countBeezzLiked, countCommentsBeezz, countBeezzCommentLike, countNewsLiked, countCommentsNews, countNewsCommentLike, countVideoLiked, countCommentsVideos, countPollLiked, countPhotobookLiked, countBlogLiked, countPodcastLiked. Retorno: série temporal por tipo de reação. Alimenta o módulo Engajamento e Reações. */
+  /**
+   * GET. Params: type, startDate, endDate, groupId, companyId, companyDepartmentId, singleAccess. `type` é um dos 12 valores documentados: countBeezzLiked, countCommentsBeezz, countBeezzCommentLike, countNewsLiked, countCommentsNews, countNewsCommentLike, countVideoLiked, countCommentsVideos, countPollLiked, countPhotobookLiked, countBlogLiked, countPodcastLiked. Retorno: série temporal por tipo de reação. Alimenta o módulo Engajamento e Reações.
+   * ⚠️ CONFIRMADO COM CHAMADA REAL (25/08/2026): este path devolve
+   * {"message":"Endpoint nao encontrado: GET /api/insights/reaction"} —
+   * está ERRADO ou desatualizado no documento oficial. Path correto ainda
+   * não confirmado — perguntar ao time BeeHome, não adivinhar.
+   */
   reaction: '/api/insights/reaction',
 
   // ---- Auditoria de login (tela /insights/access — estritamente admin) ----
@@ -67,7 +73,14 @@ export const BEEHOME_ENDPOINTS = {
   auditLoginsByDate: '/audit/loginsByDate',
   /** GET. Mesmos params de auditLoginsByDate. Retorno: média de logins por hora. */
   auditAverageLoginsByHour: '/audit/averageLoginsByHour',
-  /** GET. Mesmos params de auditLoginsByDate. Retorno: média de logins por dia da semana. */
+  /**
+   * GET. Mesmos params de auditLoginsByDate. Retorno: média de logins por dia da semana.
+   * ⚠️ CONFIRMADO COM CHAMADA REAL (25/08/2026): o servidor da BeeHome
+   * devolve 500 (NullPointerException: "date must not be null", em
+   * AuditRecordBusinessImpl.countAverageLoginsDay) com startDate/endDate —
+   * os mesmos params que funcionam em auditLoginsByDate. Bug do lado
+   * deles nesse endpoint específico — reportar ao time BeeHome.
+   */
   auditAverageLoginsByDay: '/audit/averageLoginsByDay',
   /** POST (CORRIGIDO — antes assumido como GET). Body: mesmos filtros de loginsByDate/ByHour/ByDay conforme o relatório solicitado. Retorno: arraybuffer .xls (NÃO é JSON). */
   auditExportLoginsByDate: '/audit/export/loginsByDate',
