@@ -44,6 +44,13 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // auditLogins e auditAverageLoginsByHour estão confirmadamente quebrados
+  // no servidor da BeeHome hoje (HTTP 500, ver beehome-client.ts) — os KPIs
+  // que dependem deles precisam deixar isso visível como "indisponível",
+  // não como "0" (que pareceria um dado real de zero acessos).
+  const totalLoginsUnavailable = totalLogins.status === "rejected";
+  const peakHourUnavailable = avgByHour.status === "rejected";
+
   const totalCurrent = totalLogins.status === "fulfilled" ? toNumber((totalLogins.value as Record<string, unknown>).total ?? totalLogins.value) : 0;
   const totalPrevious =
     totalLoginsPrev.status === "fulfilled" ? toNumber((totalLoginsPrev.value as Record<string, unknown>).total ?? totalLoginsPrev.value) : 0;
@@ -76,27 +83,41 @@ export async function GET(request: NextRequest) {
     .map((row) => ({ date: extractIsoDate(row), total: toNumber(row.total ?? row.count ?? row.logins) }))
     .filter((r) => r.date);
 
+  const noComparison = { current: 0, previous: 0, comparable: false, percentChange: null, direction: "none" as const };
+
   const kpis: KpiCard[] = [
-    { id: "total-logins", label: "Total de logins", value: totalCurrent, variation: calcVariation(totalCurrent, totalPrevious) },
+    {
+      id: "total-logins",
+      label: "Total de logins",
+      value: totalCurrent,
+      formattedValue: totalLoginsUnavailable ? "—" : undefined,
+      variation: totalLoginsUnavailable ? noComparison : calcVariation(totalCurrent, totalPrevious),
+      partialCoverage: totalLoginsUnavailable,
+    },
     {
       id: "daily-average",
       label: "Média diária",
       value: Math.round(totalCurrent / days),
-      variation: calcVariation(totalCurrent / days, totalPrevious / days),
+      formattedValue: totalLoginsUnavailable ? "—" : undefined,
+      variation: totalLoginsUnavailable ? noComparison : calcVariation(totalCurrent / days, totalPrevious / days),
+      partialCoverage: totalLoginsUnavailable,
     },
     {
       id: "peak-hour",
       label: "Horário de pico",
       value: peakHour,
-      formattedValue: `${peakHour}h`,
-      variation: { current: peakHour, previous: peakHour, comparable: false, percentChange: null, direction: "none" },
+      formattedValue: peakHourUnavailable ? "—" : `${peakHour}h`,
+      variation: noComparison,
+      partialCoverage: peakHourUnavailable,
     },
     {
       id: "access-variation",
       label: "Variação de acessos",
       value: totalCurrent,
-      variation: calcVariation(totalCurrent, totalPrevious),
+      formattedValue: totalLoginsUnavailable ? "—" : undefined,
+      variation: totalLoginsUnavailable ? noComparison : calcVariation(totalCurrent, totalPrevious),
       unit: "percent",
+      partialCoverage: totalLoginsUnavailable,
     },
   ];
 
