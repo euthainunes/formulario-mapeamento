@@ -35,6 +35,32 @@ export function KpiCard({ kpi }: KpiCardProps) {
   );
 }
 
+/** Versão "número-herói" do KpiCard — pra destacar a métrica mais importante de uma tela em vez de deixar todos os KPIs do mesmo tamanho competindo por atenção. */
+export function HeroKpiCard({ kpi }: KpiCardProps) {
+  const { variation } = kpi;
+  const displayValue = kpi.formattedValue ?? formatNumber(kpi.value);
+
+  return (
+    <Card className="h-full">
+      <CardContent className="pt-6 pb-6 h-full flex flex-col justify-center">
+        <div className="flex items-start justify-between gap-2">
+          <p className="text-sm font-medium text-text-secondary">{kpi.label}</p>
+          {kpi.formula && (
+            <Tooltip content={<span>Fórmula: {kpi.formula}</span>}>
+              <HelpCircle className="h-4 w-4 text-text-secondary/70 shrink-0" />
+            </Tooltip>
+          )}
+        </div>
+        <p className="mt-2 text-4xl font-bold text-text-primary tabular-nums">{displayValue}</p>
+        <div className="mt-3 flex items-center gap-2 flex-wrap">
+          <VariationTag variation={variation} />
+          {kpi.partialCoverage && <Badge tone="warning">Cobertura parcial</Badge>}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
 export function VariationTag({ variation }: { variation: KpiCardType["variation"] }) {
   if (!variation.comparable) {
     return (
