@@ -8,9 +8,15 @@ import { isoDate } from "@/lib/server/beehome-mappers";
 /**
  * POST /api/admin/integrations/token — recebe um token colado manualmente na
  * tela de Integrações, guarda como sobrescrita (cookie httpOnly, ver
- * beehome-token.ts) e testa AO VIVO contra alguns endpoints reais da BeeHome,
- * pra sinalizar na hora se o token está funcionando ou qual falha aparece —
- * sem inventar um "conectado com sucesso" genérico.
+ * beehome-token.ts) e testa AO VIVO contra TODOS os endpoints documentados no
+ * catálogo da BeeHome (beehome-client.ts), um por um, pra sinalizar na hora
+ * o que esse token realmente consegue acessar hoje — sem inventar um
+ * "conectado com sucesso" genérico nem esconder o que falha.
+ *
+ * Os parâmetros de cada chamada seguem o mesmo padrão já usado nas rotas que
+ * de fato consomem cada endpoint (ver src/app/api/*); para os que nenhuma
+ * tela usa ainda, usa-se o par startDate/endDate (padrão dominante no
+ * catálogo) ou nenhum parâmetro, nunca um valor inventado.
  */
 
 interface HealthCheck {
@@ -20,14 +26,40 @@ interface HealthCheck {
 }
 
 function healthChecks(): HealthCheck[] {
-  const to = isoDate(new Date());
-  const from = isoDate(subDays(new Date(), 6));
+  const now = new Date();
+  const to = isoDate(now);
+  const from = isoDate(subDays(now, 6));
+  const range = { startDate: from, endDate: to };
+  const admissionMonthStart = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-01`;
+
   return [
     { alias: "peopleToday", label: "Pessoas hoje", params: {} },
-    { alias: "device", label: "Dispositivos (últimos 7 dias)", params: { startDate: from, endDate: to } },
-    { alias: "auditLogins", label: "Total de logins (últimos 7 dias)", params: { startDate: from, endDate: to } },
-    { alias: "newsListMostViewedNews", label: "Notícias mais vistas (últimos 7 dias)", params: { startDate: from, endDate: to } },
+    { alias: "peopleChart", label: "Gráfico de pessoas (7 dias)", params: range },
+    { alias: "device", label: "Dispositivos (7 dias)", params: range },
+    { alias: "peopleTable", label: "Tabela de pessoas (7 dias)", params: range },
+    { alias: "reaction", label: "Reações — tipo curtida em Beezz (7 dias)", params: { type: "countBeezzLiked", ...range } },
+    { alias: "auditLogins", label: "Total de logins (7 dias)", params: range },
+    { alias: "auditLoginsByDate", label: "Logins por data (7 dias)", params: range },
+    { alias: "auditAverageLoginsByHour", label: "Média de logins por hora (7 dias)", params: range },
+    { alias: "auditAverageLoginsByDay", label: "Média de logins por dia da semana (7 dias)", params: range },
+    { alias: "insightsAccessByYear", label: `Acessos no ano ${now.getFullYear()}`, params: { year: now.getFullYear() } },
+    { alias: "newsListMostViewedNews", label: "Notícias mais vistas (7 dias)", params: range },
+    { alias: "newsListMostLikedNews", label: "Notícias mais curtidas (7 dias)", params: range },
+    { alias: "newsListMostCommentedNews", label: "Notícias mais comentadas (7 dias)", params: range },
+    { alias: "newsGetPublishedNewsChart", label: "Gráfico de publicações (7 dias)", params: range },
     { alias: "beedataBeezzLikeTop", label: "Beezz mais curtidos", params: { pageNumber: 1, pageSize: 5 } },
+    { alias: "beedataBeezzLikeTopCount", label: "Contagem de curtidas em Beezz", params: {} },
+    { alias: "beedataBeezzCommentTop", label: "Beezz mais comentados", params: { pageNumber: 1, pageSize: 5 } },
+    { alias: "beedataUserCreateBeezzTop", label: "Ranking de criadores de Beezz", params: { maxResults: 10 } },
+    { alias: "auditListTimelineByDate", label: "Linha do tempo de auditoria (7 dias)", params: range },
+    { alias: "auditBeezzReactions", label: "Reações em Beezz — auditoria (7 dias)", params: range },
+    { alias: "directoryListUsersExport", label: "Exportação do diretório de usuários", params: {} },
+    { alias: "directoryListUsersSkillsExportNew", label: "Exportação de competências do diretório", params: {} },
+    { alias: "podAuditListMostAccessed", label: "Pods mais acessados (7 dias)", params: range },
+    { alias: "podAuditListLeastAccessed", label: "Pods menos acessados (7 dias)", params: range },
+    { alias: "awardCheck", label: "Verificação de premiação", params: {} },
+    { alias: "awardUsersCheck", label: "Verificação de premiação por usuário", params: {} },
+    { alias: "awardListAdmissionAwardByMonth", label: "Premiação de admissão do mês", params: { today: admissionMonthStart, first: 0, pageSize: 100 } },
   ];
 }
 

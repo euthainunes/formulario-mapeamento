@@ -100,11 +100,11 @@ function BeeHomeTokenPanel() {
           <p className="text-xs font-medium text-text-primary">
             {result.tokenAccepted
               ? result.allChecksPassed
-                ? "Token válido — todas as verificações passaram."
-                : "Token válido — mas nem todas as verificações passaram (veja abaixo)."
+                ? `Token válido — todos os ${result.checks.length} endpoints testados responderam.`
+                : `Token válido — ${result.checks.filter((c) => c.ok).length} de ${result.checks.length} endpoints responderam (veja abaixo quais falharam).`
               : "Token não autenticou em nenhuma verificação — sobrescrita não foi mantida."}
           </p>
-          <ul className="space-y-1">
+          <ul className="max-h-72 overflow-y-auto scrollbar-thin space-y-1 pr-1">
             {result.checks.map((check) => (
               <li key={check.alias} className="flex items-start gap-1.5 text-xs">
                 {check.ok ? (
