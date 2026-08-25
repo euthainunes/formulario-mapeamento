@@ -2,6 +2,7 @@ import { NextRequest } from "next/server";
 import { subDays, format } from "date-fns";
 import { calcVariation } from "@/lib/metrics";
 import { KpiCard, RankingItem } from "@/types/metrics";
+import { ContentItem, BeezzPost } from "@/types/content";
 
 /** Converte o valor numérico da BeeHome (vem como string, ex: "36332") para number, com fallback seguro. */
 export function toNumber(value: unknown): number {
@@ -95,6 +96,37 @@ export function toRankingItems(payload: unknown, nameKeys: string[], valueKeys: 
       return { id: String(item.id ?? index), name, value: toNumber(value) };
     })
     .filter((item): item is RankingItem => item !== null);
+}
+
+/** Extrai um item de conteúdo (notícia) de uma linha de `newsListMostViewedNews`/`ListMostLikedNews`/`ListMostCommentedNews` — schema exato não confirmado, então cada métrica ausente vira 0 em vez de quebrar. */
+export function toContentItem(row: Record<string, unknown>, index: number): ContentItem | null {
+  const title = (row.title ?? row.name) as string | undefined;
+  if (!title) return null;
+  return {
+    id: String(row.id ?? index),
+    title,
+    type: "noticia" as const,
+    publishedAt: String(row.publishedAt ?? row.date ?? row.createdAt ?? ""),
+    author: String(row.author ?? row.authorName ?? ""),
+    views: toNumber(row.views ?? row.viewCount ?? row.uniqueViews),
+    likes: toNumber(row.likes ?? row.likeCount),
+    comments: toNumber(row.comments ?? row.commentCount),
+    performance: "na_media" as const, // classificado depois, com base na média real do conjunto retornado
+  };
+}
+
+/** Extrai um Beezz de uma linha de `beedataBeezzLikeTop`/`beedataBeezzCommentTop` — schema exato não confirmado (mesma ressalva de toContentItem). */
+export function toBeezzPost(row: Record<string, unknown>, index: number): BeezzPost | null {
+  const title = (row.title ?? row.text ?? row.name) as string | undefined;
+  if (!title) return null;
+  return {
+    id: String(row.id ?? index),
+    title,
+    author: String(row.author ?? row.authorName ?? row.userName ?? ""),
+    createdAt: String(row.createdAt ?? row.date ?? ""),
+    likes: toNumber(row.likes ?? row.likeCount ?? row.count),
+    comments: toNumber(row.comments ?? row.commentCount),
+  };
 }
 
 /** Constrói o breakdown por dispositivo (count + percent) a partir da resposta de `device`. */
