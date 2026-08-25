@@ -10,13 +10,11 @@ import { COMPANIES, DEPARTMENTS, JOB_TITLES, TEAMS } from "@/lib/constants";
 import { useGenerateReport } from "@/hooks/use-report-export";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/components/shared/toast";
-import { REFERENCE_TODAY, isoDate } from "@/lib/date-range";
-import { appConfig } from "@/lib/app-config";
+import { referenceToday, isoDate } from "@/lib/date-range";
 import { ApiError } from "@/lib/client/api-fetch";
 import { subDays } from "date-fns";
 
-// REFERENCE_TODAY é fixa, só para o modo mock (demonstração reproduzível).
-const today = appConfig.dataSource === "mock" ? REFERENCE_TODAY : new Date();
+const today = referenceToday();
 
 const schema = z.object({
   type: z.enum(["audiencia", "acessos", "conteudos", "engajamento", "pods", "executivo"]),

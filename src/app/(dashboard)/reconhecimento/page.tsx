@@ -12,7 +12,7 @@ import { ExportButtons } from "@/components/shared/export-buttons";
 import { Select } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
 import { formatDate } from "@/lib/formatters";
-import { REFERENCE_TODAY } from "@/lib/date-range";
+import { referenceToday } from "@/lib/date-range";
 import { appConfig } from "@/lib/app-config";
 import { differenceInCalendarMonths } from "date-fns";
 
@@ -21,11 +21,7 @@ const MONTHS = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ];
 
-// REFERENCE_TODAY é uma data fixa, só para o modo mock (demonstração
-// reproduzível). Em modo real, precisa ser a data de hoje de verdade —
-// senão a tela sempre mostraria o mesmo mês/ano e o "tempo de empresa"
-// calculado ficaria congelado numa data do passado.
-const today = appConfig.dataSource === "mock" ? REFERENCE_TODAY : new Date();
+const today = referenceToday();
 
 export default function ReconhecimentoPage() {
   const [month, setMonth] = useState(today.getMonth() + 1);

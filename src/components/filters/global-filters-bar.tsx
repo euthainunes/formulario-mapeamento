@@ -3,6 +3,7 @@
 import { Info } from "lucide-react";
 import { useGlobalFilters } from "@/hooks/use-global-filters";
 import { Select } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { Tooltip } from "@/components/ui/tooltip";
 import { PeriodPreset } from "@/types/filters";
 import { PERIOD_LABELS } from "@/lib/date-range";
@@ -44,6 +45,7 @@ function OrgSelect({
 
 export function GlobalFiltersBar() {
   const filters = useGlobalFilters();
+  const isCustom = filters.period === "custom";
 
   return (
     <div className="mb-5 flex flex-wrap items-end gap-3 rounded-card border border-border bg-surface p-4">
@@ -53,15 +55,36 @@ export function GlobalFiltersBar() {
           value={filters.period}
           onChange={(e) => filters.setPeriod(e.target.value as PeriodPreset)}
         >
-          {(Object.keys(PERIOD_LABELS) as PeriodPreset[])
-            .filter((p) => p !== "custom")
-            .map((p) => (
-              <option key={p} value={p}>
-                {PERIOD_LABELS[p]}
-              </option>
-            ))}
+          {(Object.keys(PERIOD_LABELS) as PeriodPreset[]).map((p) => (
+            <option key={p} value={p}>
+              {PERIOD_LABELS[p]}
+            </option>
+          ))}
         </Select>
       </div>
+
+      {isCustom && (
+        <>
+          <div className="min-w-[140px]">
+            <label className="block text-[11px] font-medium text-text-secondary mb-1">De</label>
+            <Input
+              type="date"
+              value={filters.dateRange.from}
+              max={filters.dateRange.to}
+              onChange={(e) => filters.setCustomRange({ ...filters.dateRange, from: e.target.value })}
+            />
+          </div>
+          <div className="min-w-[140px]">
+            <label className="block text-[11px] font-medium text-text-secondary mb-1">Até</label>
+            <Input
+              type="date"
+              value={filters.dateRange.to}
+              min={filters.dateRange.from}
+              onChange={(e) => filters.setCustomRange({ ...filters.dateRange, to: e.target.value })}
+            />
+          </div>
+        </>
+      )}
 
       <OrgSelect label="Empresa" value={filters.company} options={COMPANIES} onChange={filters.setCompany} />
       <OrgSelect label="Departamento" value={filters.department} options={DEPARTMENTS} onChange={filters.setDepartment} />

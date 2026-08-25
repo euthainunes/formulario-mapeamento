@@ -1,4 +1,14 @@
-export type PeriodPreset = "7d" | "30d" | "90d" | "custom";
+export type PeriodPreset =
+  | "today"
+  | "7d"
+  | "30d"
+  | "90d"
+  | "this-month"
+  | "last-month"
+  | "this-quarter"
+  | "this-year"
+  | "last-year"
+  | "custom";
 
 export interface DateRange {
   from: string; // ISO date
