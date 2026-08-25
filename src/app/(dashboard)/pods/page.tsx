@@ -22,9 +22,9 @@ export default function PodsPage() {
   return (
     <RouteGuard permission="pods.view">
       <PageHeader
-        title="Pods"
+        title="Comunidades"
         description="Espaços colaborativos por tema dentro da intranet BeeHome."
-        actions={<ExportButtons label="Pods" />}
+        actions={<ExportButtons label="Comunidades" />}
       />
       <GlobalFiltersBar />
 
@@ -43,7 +43,7 @@ export default function PodsPage() {
                   <AreaChartCard data={data.evolution} color={CHART_COLORS.primary} />
                 </SectionCard>
               )}
-              <SectionCard title="Comparação entre Pods" className={data.evolution.length > 0 ? undefined : "lg:col-span-2"}>
+              <SectionCard title="Comparação entre Comunidades" className={data.evolution.length > 0 ? undefined : "lg:col-span-2"}>
                 <BarChartCard
                   data={[...data.pods].sort((a, b) => b.accessCount - a.accessCount).map((p) => ({ label: p.name, value: p.accessCount }))}
                   layout="vertical"
@@ -53,8 +53,8 @@ export default function PodsPage() {
               </SectionCard>
             </div>
 
-            <SectionCard title="Pods">
-              <DataTable columns={podColumns} data={data.pods} searchPlaceholder="Buscar Pod..." />
+            <SectionCard title="Comunidades">
+              <DataTable columns={podColumns} data={data.pods} searchPlaceholder="Buscar comunidade..." />
             </SectionCard>
           </div>
         )}

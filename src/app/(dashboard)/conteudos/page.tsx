@@ -56,10 +56,13 @@ export default function ConteudosPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <SectionCard title="Publicações por data">
+              <SectionCard title="Publicações por data" description="Data de publicação registrada na BeeHome — evento oficial de publicação do conteúdo na plataforma.">
                 <LineChartCard data={data.publicationsByDate} color={CHART_COLORS.primary} dateFormatter={dateFormatter} />
               </SectionCard>
-              <SectionCard title="Distribuição de desempenho">
+              <SectionCard
+                title="Distribuição de desempenho"
+                description="Compara as visualizações de cada item com a média do conjunto de destaques (mais vistos/curtidos/comentados) retornado pela BeeHome — não é uma média de todo o conteúdo publicado no período."
+              >
                 <BarChartCard
                   data={data.performanceDistribution.map((p) => ({ label: p.bucket, value: p.count }))}
                   color={CHART_COLORS.info}
@@ -89,17 +92,6 @@ export default function ConteudosPage() {
                     value: "comentados",
                     label: "Mais comentados",
                     content: <DataTable columns={contentColumns} data={data.mostCommented} searchPlaceholder="Buscar conteúdo..." />,
-                  },
-                  {
-                    value: "comparativo",
-                    label: "Comparativo",
-                    content: (
-                      <BarChartCard
-                        data={data.items.slice(0, 12).map((i) => ({ label: i.title.slice(0, 18), value: i.views }))}
-                        color={CHART_COLORS.secondary}
-                        height={340}
-                      />
-                    ),
                   },
                 ]}
               />

@@ -87,27 +87,27 @@ export async function GET(request: NextRequest) {
   const kpis: KpiCard[] = [
     {
       id: "most-accessed",
-      label: "Pod mais acessado",
+      label: "Comunidade mais acessada",
       value: mostAccessed?.accessCount ?? 0,
       formattedValue: mostAccessed?.name ?? "—",
       variation: calcVariation(mostAccessed?.accessCount ?? 0, previousMap.get(mostAccessed?.name ?? "") ?? 0),
     },
     {
       id: "least-accessed",
-      label: "Pod menos acessado",
+      label: "Comunidade menos acessada",
       value: leastAccessed?.accessCount ?? 0,
       formattedValue: leastAccessed?.name ?? "—",
       variation: calcVariation(leastAccessed?.accessCount ?? 0, previousMap.get(leastAccessed?.name ?? "") ?? 0),
     },
     {
       id: "growing",
-      label: "Pods em crescimento",
+      label: "Comunidades em crescimento",
       value: growing,
       variation: { current: growing, previous: growing, comparable: false, percentChange: null, direction: "none" },
     },
     {
       id: "declining",
-      label: "Pods em queda",
+      label: "Comunidades em queda",
       value: declining,
       variation: { current: declining, previous: declining, comparable: false, percentChange: null, direction: "none" },
     },

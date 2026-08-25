@@ -105,7 +105,7 @@ export default function DashboardExecutivoPage() {
                   items={[
                     { value: "conteudo", label: "Conteúdo", content: <RankingList items={data.topContent} /> },
                     { value: "beezz", label: "Beezz", content: <RankingList items={data.topBeezz} /> },
-                    { value: "pods", label: "Pods", content: <RankingList items={data.topPods} /> },
+                    { value: "pods", label: "Comunidades", content: <RankingList items={data.topPods} /> },
                   ]}
                 />
               </SectionCard>

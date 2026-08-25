@@ -2,16 +2,16 @@ import { Pod } from "@/types/content";
 import { seededRandom } from "@/lib/utils";
 
 const POD_NAMES = [
-  { name: "Pod Comunicação", description: "Espaço colaborativo do time de Comunicação Interna." },
-  { name: "Pod Tecnologia", description: "Discussões técnicas e novidades de produto." },
-  { name: "Pod Vendas", description: "Estratégias comerciais e cases de sucesso." },
-  { name: "Pod RH & Cultura", description: "Cultura organizacional, benefícios e clima." },
-  { name: "Pod Inovação", description: "Ideias, hackathons e experimentação." },
-  { name: "Pod Sustentabilidade", description: "Ações e iniciativas ESG da empresa." },
-  { name: "Pod Liderança", description: "Conteúdos voltados a gestores e liderados." },
-  { name: "Pod Onboarding", description: "Apoio à jornada de novos colaboradores." },
-  { name: "Pod Financeiro", description: "Boas práticas e novidades financeiras." },
-  { name: "Pod Diversidade", description: "Ações e grupos de afinidade da empresa." },
+  { name: "Comunidade Comunicação", description: "Espaço colaborativo do time de Comunicação Interna." },
+  { name: "Comunidade Tecnologia", description: "Discussões técnicas e novidades de produto." },
+  { name: "Comunidade Vendas", description: "Estratégias comerciais e cases de sucesso." },
+  { name: "Comunidade RH & Cultura", description: "Cultura organizacional, benefícios e clima." },
+  { name: "Comunidade Inovação", description: "Ideias, hackathons e experimentação." },
+  { name: "Comunidade Sustentabilidade", description: "Ações e iniciativas ESG da empresa." },
+  { name: "Comunidade Liderança", description: "Conteúdos voltados a gestores e liderados." },
+  { name: "Comunidade Onboarding", description: "Apoio à jornada de novos colaboradores." },
+  { name: "Comunidade Financeiro", description: "Boas práticas e novidades financeiras." },
+  { name: "Comunidade Diversidade", description: "Ações e grupos de afinidade da empresa." },
 ];
 
 function buildPods(): Pod[] {

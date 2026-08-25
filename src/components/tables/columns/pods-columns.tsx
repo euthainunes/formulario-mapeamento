@@ -16,7 +16,7 @@ const STATUS_LABEL: Record<Pod["status"], string> = {
 };
 
 export const podColumns: ColumnDef<Pod, unknown>[] = [
-  { accessorKey: "name", header: "Pod" },
+  { accessorKey: "name", header: "Comunidade" },
   { accessorKey: "accessCount", header: "Acessos", cell: ({ row }) => formatNumber(row.original.accessCount) },
   {
     accessorKey: "participationPercent",

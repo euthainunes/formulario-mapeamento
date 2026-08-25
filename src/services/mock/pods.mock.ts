@@ -18,10 +18,10 @@ export class MockPodsRepository implements IPodsRepository {
     const declining = pods.filter((p) => p.status === "queda").length;
 
     const kpis: KpiCard[] = [
-      { id: "most-accessed", label: "Pod mais acessado", value: mostAccessed.accessCount, formattedValue: mostAccessed.name, variation: calcVariation(mostAccessed.accessCount, Math.round(mostAccessed.accessCount * 0.9)) },
-      { id: "least-accessed", label: "Pod menos acessado", value: leastAccessed.accessCount, formattedValue: leastAccessed.name, variation: calcVariation(leastAccessed.accessCount, Math.round(leastAccessed.accessCount * 1.05)) },
-      { id: "growing", label: "Pods em crescimento", value: growing, variation: { current: growing, previous: growing, comparable: false, percentChange: null, direction: "none" } },
-      { id: "declining", label: "Pods em queda", value: declining, variation: { current: declining, previous: declining, comparable: false, percentChange: null, direction: "none" } },
+      { id: "most-accessed", label: "Comunidade mais acessada", value: mostAccessed.accessCount, formattedValue: mostAccessed.name, variation: calcVariation(mostAccessed.accessCount, Math.round(mostAccessed.accessCount * 0.9)) },
+      { id: "least-accessed", label: "Comunidade menos acessada", value: leastAccessed.accessCount, formattedValue: leastAccessed.name, variation: calcVariation(leastAccessed.accessCount, Math.round(leastAccessed.accessCount * 1.05)) },
+      { id: "growing", label: "Comunidades em crescimento", value: growing, variation: { current: growing, previous: growing, comparable: false, percentChange: null, direction: "none" } },
+      { id: "declining", label: "Comunidades em queda", value: declining, variation: { current: declining, previous: declining, comparable: false, percentChange: null, direction: "none" } },
     ];
 
     const days = Math.max(7, differenceInCalendarDays(new Date(range.to), new Date(range.from)) + 1);

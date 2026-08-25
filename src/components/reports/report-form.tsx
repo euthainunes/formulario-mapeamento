@@ -35,7 +35,7 @@ const REPORT_TYPES: { value: FormValues["type"]; label: string }[] = [
   { value: "acessos", label: "Acessos" },
   { value: "conteudos", label: "Conteúdos" },
   { value: "engajamento", label: "Engajamento" },
-  { value: "pods", label: "Pods" },
+  { value: "pods", label: "Comunidades" },
 ];
 
 export function ReportForm() {

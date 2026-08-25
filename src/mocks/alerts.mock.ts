@@ -43,8 +43,8 @@ export const MOCK_ALERT_RULES: AlertRule[] = [
   },
   {
     id: "rule-4",
-    name: "Pod em queda sustentada",
-    metric: "Acessos ao Pod",
+    name: "Comunidade em queda sustentada",
+    metric: "Acessos à comunidade",
     condition: "Queda superior a 20% por 3 períodos consecutivos",
     threshold: 20,
     severity: "warning",

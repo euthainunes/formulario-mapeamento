@@ -8,7 +8,7 @@ export const MOCK_AUTO_INSIGHTS: InsightSummary[] = [
   },
   {
     id: "auto-2",
-    text: "O Pod de Tecnologia apresenta a maior taxa de participação entre os Pods monitorados neste período.",
+    text: "A comunidade de Tecnologia apresenta a maior taxa de participação entre as comunidades monitoradas neste período.",
     relatedDashboard: "/pods",
   },
   {
@@ -57,15 +57,15 @@ export const MOCK_INSIGHT_ANSWERS: InsightAnswer[] = [
   },
   {
     id: "q-pod-mais-acessado",
-    question: "Qual Pod está com mais acessos atualmente?",
-    keywords: ["pod", "pods", "mais acessado", "acesso pod"],
+    question: "Qual comunidade está com mais acessos atualmente?",
+    keywords: ["pod", "pods", "comunidade", "comunidades", "mais acessado", "acesso comunidade"],
     answer:
-      "O Pod de Tecnologia lidera em número absoluto de acessos no período, seguido de perto pelo Pod de Comunicação. Já o Pod Financeiro apresenta o menor volume relativo entre os Pods monitorados.",
+      "A comunidade de Tecnologia lidera em número absoluto de acessos no período, seguida de perto pela comunidade de Comunicação. Já a comunidade Financeiro apresenta o menor volume relativo entre as comunidades monitoradas.",
     periodAnalyzed: "Período selecionado nos filtros globais",
-    metricsUsed: ["Acessos por Pod", "Participação percentual"],
+    metricsUsed: ["Acessos por comunidade", "Participação percentual"],
     relatedDashboardHref: "/pods",
-    relatedDashboardLabel: "Ver dashboard de Pods",
-    limitation: "Ranking de Pods não deve ser interpretado como avaliação de desempenho de equipes.",
+    relatedDashboardLabel: "Ver dashboard de Comunidades",
+    limitation: "Ranking de comunidades não deve ser interpretado como avaliação de desempenho de equipes.",
   },
   {
     id: "q-alertas-abertos",

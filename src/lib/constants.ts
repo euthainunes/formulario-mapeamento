@@ -30,7 +30,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Conteúdos e Notícias", href: "/conteudos", icon: Newspaper, permission: "content.view" },
   { label: "Beezz", href: "/beezz", icon: Sparkles, permission: "beezz.view" },
   { label: "Engajamento e Reações", href: "/engajamento", icon: Heart, permission: "engagement.view" },
-  { label: "Pods", href: "/pods", icon: Boxes, permission: "pods.view" },
+  { label: "Comunidades", href: "/pods", icon: Boxes, permission: "pods.view" },
   { label: "Diretório e Perfis", href: "/diretorio", icon: IdCard, permission: "directory.view" },
   { label: "Reconhecimento", href: "/reconhecimento", icon: Award, permission: "awards.view" },
   { label: "Relatórios e Exportações", href: "/relatorios", icon: FileBarChart, permission: "report.view" },
