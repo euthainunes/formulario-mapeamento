@@ -7,6 +7,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useSyncStatus } from "@/hooks/use-sync-status";
 import { DEMO_BADGE_TEXT } from "@/lib/constants";
 import { formatDateTime } from "@/lib/formatters";
+import { appConfig } from "@/lib/app-config";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -32,13 +33,15 @@ export function Topbar() {
           <Menu className="h-5 w-5" />
         </button>
 
-        <Badge tone="warning" className="shrink-0">
-          {DEMO_BADGE_TEXT}
-        </Badge>
+        {appConfig.dataSource === "mock" && (
+          <Badge tone="warning" className="shrink-0">
+            {DEMO_BADGE_TEXT}
+          </Badge>
+        )}
 
         <span className="hidden sm:inline-flex items-center gap-1.5 text-xs text-text-secondary">
           <RefreshCw className="h-3.5 w-3.5" />
-          Última sincronização: Simulada em{" "}
+          {appConfig.dataSource === "mock" ? "Última sincronização: Simulada em " : "Última consulta à BeeHome: "}
           {syncStatus ? formatDateTime(syncStatus.lastSyncAt) : "carregando..."}
         </span>
 

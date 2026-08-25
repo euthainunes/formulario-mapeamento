@@ -1,6 +1,11 @@
-import { proxyBinaryDownload } from "@/lib/server/backend-proxy";
+import { NextResponse } from "next/server";
+import { getSessionClaims } from "@/lib/server/admin-session";
 
-export async function GET(_request: Request, ctx: { params: Promise<{ id: string }> }) {
-  const { id } = await ctx.params;
-  return proxyBinaryDownload(`/reports/${id}/download`);
+/** GET /api/reports/[id]/download — sem banco de dados, não há arquivo gerado/persistido para baixar. */
+export async function GET() {
+  const session = await getSessionClaims();
+  if (!session) {
+    return NextResponse.json({ statusCode: 401, message: "Sessão expirada ou inexistente. Faça login novamente." }, { status: 401 });
+  }
+  return NextResponse.json({ statusCode: 404, message: "Relatório não encontrado — geração de relatórios está indisponível sem banco de dados nesta versão." }, { status: 404 });
 }

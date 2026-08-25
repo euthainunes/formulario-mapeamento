@@ -1,6 +1,17 @@
-import { NextRequest } from "next/server";
-import { proxyToBackend } from "@/lib/server/backend-proxy";
+import { NextResponse } from "next/server";
+import { getSessionClaims } from "@/lib/server/admin-session";
+import { Alert } from "@/types/alert";
 
-export async function GET(request: NextRequest) {
-  return proxyToBackend(request, "/alerts");
+/**
+ * GET /api/alerts — sem banco de dados: alertas exigem uma regra
+ * configurada e histórico persistido para disparar entre requisições
+ * (não existe mais nesta versão). Fica vazio, de propósito.
+ */
+export async function GET() {
+  const session = await getSessionClaims();
+  if (!session) {
+    return NextResponse.json({ statusCode: 401, message: "Sessão expirada ou inexistente. Faça login novamente." }, { status: 401 });
+  }
+  const alerts: Alert[] = [];
+  return NextResponse.json(alerts);
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { differenceInCalendarDays } from "date-fns";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
-import { toNumber, parseDateRange, asList } from "@/lib/server/beehome-mappers";
+import { toNumber, parseDateRange, previousRange, asList } from "@/lib/server/beehome-mappers";
 import { calcVariation } from "@/lib/metrics";
 import { AccessData, HourAverage, WeekdayAverage } from "@/services/contracts/access.contract";
 import { KpiCard } from "@/types/metrics";
@@ -14,18 +14,6 @@ import { KpiCard } from "@/types/metrics";
  * (só marginais separados — `auditAverageLoginsByHour`/`ByDay`), e cruzar os
  * dois manualmente seria inventar um dado que ela não fornece.
  */
-
-function previousRange(range: { from: string; to: string }): { from: string; to: string } {
-  const from = new Date(range.from);
-  const to = new Date(range.to);
-  const spanDays = differenceInCalendarDays(to, from) + 1;
-  const prevTo = new Date(from);
-  prevTo.setDate(prevTo.getDate() - 1);
-  const prevFrom = new Date(prevTo);
-  prevFrom.setDate(prevFrom.getDate() - (spanDays - 1));
-  const iso = (d: Date) => d.toISOString().slice(0, 10);
-  return { from: iso(prevFrom), to: iso(prevTo) };
-}
 
 export async function GET(request: NextRequest) {
   const session = await getSessionClaims();

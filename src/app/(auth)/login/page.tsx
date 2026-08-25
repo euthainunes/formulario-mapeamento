@@ -189,11 +189,19 @@ export default function LoginPage() {
   );
 }
 
-/** Formulário de login real (modo `NEXT_PUBLIC_APP_MODE=api`): chama POST /api/auth/login (BFF), que autentica contra o backend NestJS e seta o cookie httpOnly de sessão — o front nunca vê o token. */
+/**
+ * Formulário de login real (modo `NEXT_PUBLIC_APP_MODE=api`): chama POST
+ * /api/auth/login (BFF), que valida contra ADMIN_LOGIN/ADMIN_PASSWORD (sem
+ * banco de dados — ver src/app/api/auth/login/route.ts) e seta o cookie
+ * httpOnly de sessão — o front nunca vê o token. Mesmo layout simples de
+ * login/senha do modo mock (sem campo de tenant nem `type="email"`: o
+ * login real não é necessariamente um e-mail, é o mesmo padrão da
+ * demonstração) — e, ao contrário do mock, SEM mostrar a credencial na
+ * tela, já que aqui é o login real de produção.
+ */
 function ApiLoginForm({ onSuccess }: { onSuccess: () => void }) {
   const { loginWithCredentials } = useAuth();
-  const [tenantSlug, setTenantSlug] = useState(process.env.NEXT_PUBLIC_DEFAULT_TENANT_SLUG ?? "");
-  const [email, setEmail] = useState("");
+  const [login, setLogin] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -204,7 +212,7 @@ function ApiLoginForm({ onSuccess }: { onSuccess: () => void }) {
     setError(null);
     setLoading(true);
     try {
-      await loginWithCredentials(tenantSlug.trim(), email.trim(), password);
+      await loginWithCredentials("", login.trim(), password);
       onSuccess();
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Não foi possível entrar. Verifique as credenciais e tente novamente.");
@@ -225,33 +233,19 @@ function ApiLoginForm({ onSuccess }: { onSuccess: () => void }) {
 
       <div className="mb-5">
         <h2 className="text-xl font-semibold text-text-primary">Bem-vinda de volta</h2>
-        <p className="text-sm text-text-secondary mt-1">Entre com seu e-mail e senha para acessar o painel.</p>
+        <p className="text-sm text-text-secondary mt-1">Entre com seu login e senha para acessar o painel.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="rounded-card border border-border bg-surface p-5 shadow-sm space-y-3.5">
         <div>
-          <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="tenantSlug">
-            Tenant
+          <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="login">
+            Login
           </label>
           <Input
-            id="tenantSlug"
-            value={tenantSlug}
-            onChange={(e) => setTenantSlug(e.target.value)}
-            placeholder="rede-americas"
-            required
-            autoComplete="organization"
-          />
-        </div>
-        <div>
-          <label className="block text-xs font-medium text-text-secondary mb-1" htmlFor="email">
-            E-mail
-          </label>
-          <Input
-            id="email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="nome@empresa.com.br"
+            id="login"
+            value={login}
+            onChange={(e) => setLogin(e.target.value)}
+            placeholder="Seu login"
             required
             autoComplete="username"
           />
@@ -266,6 +260,7 @@ function ApiLoginForm({ onSuccess }: { onSuccess: () => void }) {
               type={showPassword ? "text" : "password"}
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              placeholder="Sua senha"
               required
               autoComplete="current-password"
               className="pr-9"
@@ -281,7 +276,12 @@ function ApiLoginForm({ onSuccess }: { onSuccess: () => void }) {
           </div>
         </div>
 
-        {error && <p className="text-xs text-error">{error}</p>}
+        {error && (
+          <p className="flex items-center gap-1.5 text-xs text-error">
+            <Lock className="h-3.5 w-3.5 shrink-0" />
+            {error}
+          </p>
+        )}
 
         <Button type="submit" className="w-full" disabled={loading}>
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <ArrowRight className="h-4 w-4" />}

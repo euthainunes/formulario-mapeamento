@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { subDays, format } from "date-fns";
+import { subDays, differenceInCalendarDays, format } from "date-fns";
 import { calcVariation } from "@/lib/metrics";
 import { KpiCard, RankingItem } from "@/types/metrics";
 import { ContentItem, BeezzPost } from "@/types/content";
@@ -34,6 +34,16 @@ export function parseDateRange(request: NextRequest): DateRange {
   const days = period === "7d" ? 7 : period === "90d" ? 90 : 30;
   const today = new Date();
   return { from: isoDate(subDays(today, days - 1)), to: isoDate(today) };
+}
+
+/** Intervalo imediatamente anterior, com a mesma duração em dias. */
+export function previousRange(range: DateRange): DateRange {
+  const from = new Date(range.from);
+  const to = new Date(range.to);
+  const spanDays = differenceInCalendarDays(to, from) + 1;
+  const prevTo = subDays(from, 1);
+  const prevFrom = subDays(prevTo, spanDays - 1);
+  return { from: isoDate(prevFrom), to: isoDate(prevTo) };
 }
 
 /** Extrai uma lista de registros de um payload cujo envelope exato (array direto x `{data:[...]}` x paginado) não está 100% confirmado para todo endpoint. */
