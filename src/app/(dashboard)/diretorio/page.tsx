@@ -11,17 +11,23 @@ import { StateWrapper } from "@/components/shared/state-wrapper";
 import { CollaboratorCard } from "@/components/shared/collaborator-card";
 import { ExportButtons } from "@/components/shared/export-buttons";
 import { Input } from "@/components/ui/input";
+import { appConfig } from "@/lib/app-config";
 
 export default function DiretorioPage() {
   const filters = useGlobalFilters();
   const [search, setSearch] = useState("");
   const { data, isLoading, isError } = useDirectoryData(filters, search);
+  const isMock = appConfig.dataSource === "mock";
 
   return (
     <RouteGuard permission="directory.view">
       <PageHeader
         title="Diretório e Perfis"
-        description="Encontre colaboradores por nome, área, cargo, time ou competências."
+        description={
+          isMock
+            ? "Encontre colaboradores por nome, área, cargo, time ou competências."
+            : "Encontre colaboradores por nome. A BeeHome ainda não confirma empresa, departamento, cargo ou time nesse endpoint — por isso esses campos não aparecem nos cartões."
+        }
         actions={<ExportButtons label="diretório" />}
       />
       <GlobalFiltersBar />
@@ -31,7 +37,7 @@ export default function DiretorioPage() {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nome, cargo, time ou competência..."
+          placeholder={isMock ? "Buscar por nome, cargo, time ou competência..." : "Buscar por nome..."}
           className="pl-8"
         />
       </div>
