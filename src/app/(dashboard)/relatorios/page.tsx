@@ -19,7 +19,7 @@ export default function RelatoriosPage() {
         description={
           appConfig.mockMode
             ? "Gere relatórios com período, filtros e formato personalizados. O processamento é simulado."
-            : "Gere relatórios com período, filtros e formato personalizados. Os arquivos (CSV, Excel ou PDF) são gerados de verdade e ficam disponíveis para download após a conclusão."
+            : "Geração de relatórios com histórico e download exige um banco de dados, que esta versão não tem — indisponível no momento."
         }
       />
 

@@ -30,7 +30,12 @@ export default function ConteudosPage() {
       />
       <GlobalFiltersBar />
 
-      <StateWrapper isLoading={isLoading} isError={isError} isEmpty={!data} partialCoverage={data?.partialCoverage}>
+      <StateWrapper
+        isLoading={isLoading}
+        isError={isError}
+        isEmpty={!data || (data.items.length === 0 && data.publicationsByDate.length === 0)}
+        partialCoverage={data?.partialCoverage}
+      >
         {data && (
           <div className="space-y-5">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">

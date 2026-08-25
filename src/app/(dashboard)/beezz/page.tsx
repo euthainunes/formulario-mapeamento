@@ -28,7 +28,12 @@ export default function BeezzPage() {
       />
       <GlobalFiltersBar />
 
-      <StateWrapper isLoading={isLoading} isError={isError} isEmpty={!data} partialCoverage={data?.partialCoverage}>
+      <StateWrapper
+        isLoading={isLoading}
+        isError={isError}
+        isEmpty={!data || data.posts.length === 0}
+        partialCoverage={data?.partialCoverage}
+      >
         {data && (
           <div className="space-y-5">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
@@ -37,9 +42,11 @@ export default function BeezzPage() {
               ))}
             </div>
 
-            <SectionCard title="Linha do tempo de atividade">
-              <AreaChartCard data={data.activityTimeline} color={CHART_COLORS.primary} />
-            </SectionCard>
+            {data.activityTimeline.length > 0 && (
+              <SectionCard title="Linha do tempo de atividade">
+                <AreaChartCard data={data.activityTimeline} color={CHART_COLORS.primary} />
+              </SectionCard>
+            )}
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
               <SectionCard title="Mais curtidos">

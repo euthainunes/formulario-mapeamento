@@ -8,17 +8,30 @@ import { SectionCard } from "@/components/shared/section-card";
 import { StateWrapper } from "@/components/shared/state-wrapper";
 import { useAuditLog } from "@/hooks/use-admin";
 import { formatDateTime } from "@/lib/formatters";
+import { appConfig } from "@/lib/app-config";
 
 export default function AuditoriaPage() {
   const { data, isLoading, isError } = useAuditLog();
 
   return (
     <RouteGuard permission="audit.view">
-      <PageHeader title="Administração — Auditoria" description="Trilha de ações realizadas na plataforma (dados simulados)." />
+      <PageHeader
+        title="Administração — Auditoria"
+        description={
+          appConfig.dataSource === "mock"
+            ? "Trilha de ações realizadas na plataforma (dados simulados)."
+            : "Trilha de ações realizadas na plataforma — exige banco de dados para registrar, que esta versão não tem."
+        }
+      />
       <AdminNav />
 
       <SectionCard title="Linha do tempo">
-        <StateWrapper isLoading={isLoading} isError={isError} isEmpty={!data || data.length === 0}>
+        <StateWrapper
+          isLoading={isLoading}
+          isError={isError}
+          isEmpty={!data || data.length === 0}
+          emptyMessage={appConfig.dataSource === "mock" ? undefined : "Sem log de auditoria: sem banco de dados, não há como registrar ações aqui."}
+        >
           {data && (
             <ol className="relative border-l border-border pl-5 space-y-5">
               {data.map((entry) => (

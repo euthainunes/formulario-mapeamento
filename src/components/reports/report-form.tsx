@@ -11,7 +11,12 @@ import { useGenerateReport } from "@/hooks/use-report-export";
 import { useAuth } from "@/hooks/use-auth";
 import { toast } from "@/components/shared/toast";
 import { REFERENCE_TODAY, isoDate } from "@/lib/date-range";
+import { appConfig } from "@/lib/app-config";
+import { ApiError } from "@/lib/client/api-fetch";
 import { subDays } from "date-fns";
+
+// REFERENCE_TODAY é fixa, só para o modo mock (demonstração reproduzível).
+const today = appConfig.dataSource === "mock" ? REFERENCE_TODAY : new Date();
 
 const schema = z.object({
   type: z.enum(["audiencia", "acessos", "conteudos", "engajamento", "pods", "executivo"]),
@@ -47,8 +52,8 @@ export function ReportForm() {
     defaultValues: {
       type: "executivo",
       format: "pdf",
-      from: isoDate(subDays(REFERENCE_TODAY, 29)),
-      to: isoDate(REFERENCE_TODAY),
+      from: isoDate(subDays(today, 29)),
+      to: isoDate(today),
       company: "",
       department: "",
       jobTitle: "",
@@ -74,6 +79,7 @@ export function ReportForm() {
       },
       {
         onSuccess: () => toast("Relatório em processamento. Você será atualizado no histórico abaixo.", "info"),
+        onError: (err) => toast(err instanceof ApiError ? err.message : "Não foi possível gerar o relatório agora.", "error"),
       }
     );
   }

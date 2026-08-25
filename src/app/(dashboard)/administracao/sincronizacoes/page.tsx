@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { useSyncJobs } from "@/hooks/use-sync-status";
 import { SyncJob, SyncStatus } from "@/types/sync";
 import { formatDateTime, formatNumber } from "@/lib/formatters";
+import { appConfig } from "@/lib/app-config";
 
 const STATUS_TONE: Record<SyncStatus, "success" | "warning" | "error"> = {
   sucesso: "success",
@@ -52,11 +53,27 @@ export default function SincronizacoesPage() {
 
   return (
     <RouteGuard permission="sync.view">
-      <PageHeader title="Administração — Sincronizações" description="Histórico de execuções simuladas de sincronização com a Intranet BeeHome." />
+      <PageHeader
+        title="Administração — Sincronizações"
+        description={
+          appConfig.dataSource === "mock"
+            ? "Histórico de execuções simuladas de sincronização com a Intranet BeeHome."
+            : "Esta versão consulta a BeeHome em tempo real a cada requisição — não existe mais um job de sincronização em lote nem histórico armazenado."
+        }
+      />
       <AdminNav />
 
       <SectionCard title="Histórico de sincronizações">
-        <StateWrapper isLoading={isLoading} isError={isError} isEmpty={!data || data.length === 0}>
+        <StateWrapper
+          isLoading={isLoading}
+          isError={isError}
+          isEmpty={!data || data.length === 0}
+          emptyMessage={
+            appConfig.dataSource === "mock"
+              ? undefined
+              : "Sem histórico: sem banco de dados, não há job de sincronização em lote para registrar aqui."
+          }
+        >
           {data && (
             <div className="space-y-2">
               {data.map((job) => (
