@@ -24,7 +24,7 @@ export default function PessoasAudienciaPage() {
     <RouteGuard permission="audience.view">
       <PageHeader
         title="Pessoas e Audiência"
-        description="Visão de audiência ativa e engajada da intranet, com detalhamento por colaborador."
+        description="Visão de audiência ativa e engajada da intranet."
         actions={<ExportButtons label="audiência" />}
       />
       <GlobalFiltersBar />
@@ -57,9 +57,11 @@ export default function PessoasAudienciaPage() {
               />
             </SectionCard>
 
-            <SectionCard title="Colaboradores" description="Detalhamento por colaborador, com busca, ordenação e paginação.">
-              <DataTable columns={collaboratorColumns} data={data.collaborators} searchPlaceholder="Buscar colaborador..." />
-            </SectionCard>
+            {data.collaborators.length > 0 && (
+              <SectionCard title="Colaboradores" description="Detalhamento por colaborador, com busca, ordenação e paginação.">
+                <DataTable columns={collaboratorColumns} data={data.collaborators} searchPlaceholder="Buscar colaborador..." />
+              </SectionCard>
+            )}
           </div>
         )}
       </StateWrapper>

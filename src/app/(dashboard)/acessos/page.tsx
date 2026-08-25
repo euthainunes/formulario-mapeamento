@@ -49,32 +49,44 @@ export default function AcessosPage() {
               ))}
             </div>
 
-            <SectionCard title="Logins por data">
-              <LineChartCard data={data.loginsByDate} color={CHART_COLORS.primary} />
-            </SectionCard>
-
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <SectionCard title="Média por hora do dia">
-                <BarChartCard
-                  data={data.averageByHour.map((h) => ({ label: `${h.hour}h`, value: h.average }))}
-                  color={CHART_COLORS.info}
-                />
+            {data.loginsByDate.length > 0 && (
+              <SectionCard title="Logins por data">
+                <LineChartCard data={data.loginsByDate} color={CHART_COLORS.primary} />
               </SectionCard>
-              <SectionCard title="Média por dia da semana">
-                <BarChartCard
-                  data={data.averageByWeekday.map((w) => ({ label: w.weekday, value: w.average }))}
-                  color={CHART_COLORS.secondary}
-                />
+            )}
+
+            {(data.averageByHour.length > 0 || data.averageByWeekday.length > 0) && (
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                {data.averageByHour.length > 0 && (
+                  <SectionCard title="Média por hora do dia">
+                    <BarChartCard
+                      data={data.averageByHour.map((h) => ({ label: `${h.hour}h`, value: h.average }))}
+                      color={CHART_COLORS.info}
+                    />
+                  </SectionCard>
+                )}
+                {data.averageByWeekday.length > 0 && (
+                  <SectionCard title="Média por dia da semana">
+                    <BarChartCard
+                      data={data.averageByWeekday.map((w) => ({ label: w.weekday, value: w.average }))}
+                      color={CHART_COLORS.secondary}
+                    />
+                  </SectionCard>
+                )}
+              </div>
+            )}
+
+            {data.heatmap.length > 0 && (
+              <SectionCard title="Mapa de calor: dia da semana × horário" description="Intensidade de acessos por combinação de dia e hora.">
+                <HeatmapGrid data={data.heatmap} />
               </SectionCard>
-            </div>
+            )}
 
-            <SectionCard title="Mapa de calor: dia da semana × horário" description="Intensidade de acessos por combinação de dia e hora.">
-              <HeatmapGrid data={data.heatmap} />
-            </SectionCard>
-
-            <SectionCard title="Logins por data (tabela)">
-              <DataTable columns={columns} data={data.loginTable} searchPlaceholder="Buscar data..." />
-            </SectionCard>
+            {data.loginTable.length > 0 && (
+              <SectionCard title="Logins por data (tabela)">
+                <DataTable columns={columns} data={data.loginTable} searchPlaceholder="Buscar data..." />
+              </SectionCard>
+            )}
           </div>
         )}
       </StateWrapper>

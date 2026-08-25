@@ -28,7 +28,13 @@ export default function EngajamentoPage() {
       />
       <GlobalFiltersBar />
 
-      <StateWrapper isLoading={isLoading} isError={isError} isEmpty={!data} partialCoverage={data?.partialCoverage}>
+      <StateWrapper
+        isLoading={isLoading}
+        isError={isError}
+        isEmpty={!data || (data.evolution.length === 0 && data.reactionTotals.every((r) => r.count === 0))}
+        partialCoverage={data?.partialCoverage}
+        emptyMessage="Nenhuma reação disponível na integração com a BeeHome neste momento."
+      >
         {data && (
           <div className="space-y-5">
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">

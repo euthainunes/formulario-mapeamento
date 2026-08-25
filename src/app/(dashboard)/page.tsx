@@ -18,6 +18,7 @@ import { InsightsPanel } from "@/components/dashboard/insights-panel";
 import { SyncStatusCard } from "@/components/dashboard/sync-status-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CHART_COLORS } from "@/lib/chart-colors";
+import { appConfig } from "@/lib/app-config";
 
 function KpiSkeleton() {
   return (
@@ -37,7 +38,11 @@ export default function DashboardExecutivoPage() {
     <RouteGuard permission="dashboard.view">
       <PageHeader
         title="Dashboard Executivo"
-        description="Visão consolidada da Comunicação Interna a partir de dados simulados da Intranet BeeHome."
+        description={
+          appConfig.dataSource === "mock"
+            ? "Visão consolidada da Comunicação Interna a partir de dados simulados da Intranet BeeHome."
+            : "Visão consolidada da Comunicação Interna a partir de dados reais da Intranet BeeHome."
+        }
       />
       <GlobalFiltersBar />
 
@@ -66,17 +71,19 @@ export default function DashboardExecutivoPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <SectionCard title="Engajamento por tipo" description="Interações agrupadas por categoria de conteúdo, por data.">
-                <StackedBarChartCard
-                  data={data.engagementByType}
-                  series={[
-                    { key: "beezz", label: "Beezz", color: CHART_COLORS.primary },
-                    { key: "news", label: "Notícias", color: CHART_COLORS.info },
-                    { key: "video", label: "Vídeo", color: CHART_COLORS.success },
-                    { key: "outros", label: "Outros", color: CHART_COLORS.warning },
-                  ]}
-                />
-              </SectionCard>
+              {data.engagementByType.length > 0 && (
+                <SectionCard title="Engajamento por tipo" description="Interações agrupadas por categoria de conteúdo, por data.">
+                  <StackedBarChartCard
+                    data={data.engagementByType}
+                    series={[
+                      { key: "beezz", label: "Beezz", color: CHART_COLORS.primary },
+                      { key: "news", label: "Notícias", color: CHART_COLORS.info },
+                      { key: "video", label: "Vídeo", color: CHART_COLORS.success },
+                      { key: "outros", label: "Outros", color: CHART_COLORS.warning },
+                    ]}
+                  />
+                </SectionCard>
+              )}
               <SectionCard title="Dispositivos" description="Distribuição de colaboradores por tipo de dispositivo.">
                 <DonutChartCard data={data.deviceBreakdown.map((d) => ({ label: d.device, value: d.count }))} />
               </SectionCard>
@@ -94,22 +101,32 @@ export default function DashboardExecutivoPage() {
               </SectionCard>
             </div>
 
-            <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-              <SectionCard title="Conteúdos menos acessados">
-                <RankingList items={data.bottomContent} />
-              </SectionCard>
-              <SectionCard title="Beezz menos acessados">
-                <RankingList items={data.bottomBeezz} />
-              </SectionCard>
-              <SectionCard title="Pods menos acessados">
-                <RankingList items={data.bottomPods} />
-              </SectionCard>
-            </div>
+            {(data.bottomContent.length > 0 || data.bottomBeezz.length > 0 || data.bottomPods.length > 0) && (
+              <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
+                {data.bottomContent.length > 0 && (
+                  <SectionCard title="Conteúdos menos acessados">
+                    <RankingList items={data.bottomContent} />
+                  </SectionCard>
+                )}
+                {data.bottomBeezz.length > 0 && (
+                  <SectionCard title="Beezz menos acessados">
+                    <RankingList items={data.bottomBeezz} />
+                  </SectionCard>
+                )}
+                {data.bottomPods.length > 0 && (
+                  <SectionCard title="Pods menos acessados">
+                    <RankingList items={data.bottomPods} />
+                  </SectionCard>
+                )}
+              </div>
+            )}
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-3">
-              <SectionCard title="Alertas prioritários" className="lg:col-span-1">
-                <AlertsPanel alerts={data.priorityAlerts} />
-              </SectionCard>
+              {data.priorityAlerts.length > 0 && (
+                <SectionCard title="Alertas prioritários" className="lg:col-span-1">
+                  <AlertsPanel alerts={data.priorityAlerts} />
+                </SectionCard>
+              )}
               <SectionCard title="Insights automáticos" className="lg:col-span-1">
                 <InsightsPanel insights={data.autoInsights} />
               </SectionCard>

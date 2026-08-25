@@ -38,10 +38,12 @@ export default function PodsPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
-              <SectionCard title="Evolução por período">
-                <AreaChartCard data={data.evolution} color={CHART_COLORS.primary} />
-              </SectionCard>
-              <SectionCard title="Comparação entre Pods">
+              {data.evolution.length > 0 && (
+                <SectionCard title="Evolução por período">
+                  <AreaChartCard data={data.evolution} color={CHART_COLORS.primary} />
+                </SectionCard>
+              )}
+              <SectionCard title="Comparação entre Pods" className={data.evolution.length > 0 ? undefined : "lg:col-span-2"}>
                 <BarChartCard
                   data={[...data.pods].sort((a, b) => b.accessCount - a.accessCount).map((p) => ({ label: p.name, value: p.accessCount }))}
                   layout="vertical"

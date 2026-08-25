@@ -66,8 +66,17 @@ export async function GET(request: NextRequest) {
   const tenureYears = rows.map((row) => toNumber(row.years ?? row.tenureYears ?? row["anosDeEmpresa"])).filter((y) => y > 0);
   const avgTenureMonths = tenureYears.length > 0 ? Math.round((tenureYears.reduce((s, y) => s + y, 0) / tenureYears.length) * 12) : 0;
 
+  // Confirmado com a documentação oficial da BeeHome (v2.0): este endpoint é
+  // "aniversário de ADMISSÃO" (tempo de casa), não data de nascimento — o
+  // rótulo do KPI reflete isso, ao contrário do modo mock (que usa
+  // birthDate de verdade e mantém "Aniversariantes").
   const kpis: KpiCard[] = [
-    { id: "birthdays", label: "Aniversariantes do mês", value: birthdaysThisMonth.length, variation: { current: birthdaysThisMonth.length, previous: birthdaysThisMonth.length, comparable: false, percentChange: null, direction: "none" } },
+    {
+      id: "admission-anniversaries",
+      label: "Aniversários de admissão no mês",
+      value: birthdaysThisMonth.length,
+      variation: { current: birthdaysThisMonth.length, previous: birthdaysThisMonth.length, comparable: false, percentChange: null, direction: "none" },
+    },
     { id: "avg-tenure", label: "Tempo médio de empresa (meses)", value: avgTenureMonths, variation: { current: avgTenureMonths, previous: avgTenureMonths, comparable: false, percentChange: null, direction: "none" } },
   ];
 

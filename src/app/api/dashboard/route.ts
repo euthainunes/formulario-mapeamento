@@ -2,7 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
 import { toNumber, parseDateRange, asList, kpisFromPeopleToday, toRankingItems, toBeezzPost, deviceBreakdownFrom, extractIsoDate } from "@/lib/server/beehome-mappers";
+import { gatherInsightsFactsheet } from "@/lib/server/insights-data";
+import { generateAutoInsights } from "@/lib/server/ai-insights";
 import { ExecutiveDashboardData } from "@/types/dashboard";
+import { InsightSummary } from "@/types/insight";
 
 /**
  * GET /api/dashboard — sem banco de dados: busca direto na BeeHome, em
@@ -59,6 +62,21 @@ export async function GET(request: NextRequest) {
 
   const deviceBreakdown = device.status === "fulfilled" ? deviceBreakdownFrom(asList(device.value)) : [];
 
+  // Insights automáticos: agora reais quando OPENAI_API_KEY está configurada
+  // (ver ai-insights.ts) — a IA só narra números já calculados aqui, nunca
+  // inventa. Sem a chave, ou se a IA falhar, fica vazio (mesmo comportamento
+  // honesto de antes), nunca quebra o dashboard inteiro por causa disso.
+  let autoInsights: InsightSummary[] = [];
+  if (process.env.OPENAI_API_KEY) {
+    try {
+      const factsheet = await gatherInsightsFactsheet(range);
+      const result = await generateAutoInsights(factsheet);
+      autoInsights = result.insights.map((insight, index) => ({ id: `ai-${index}`, text: insight.text }));
+    } catch (err) {
+      console.error("Dashboard: falha ao gerar insights automáticos via IA —", err instanceof Error ? err.message : err);
+    }
+  }
+
   const data: ExecutiveDashboardData = {
     kpis: kpisFromPeopleToday(today),
     accessEvolution,
@@ -84,7 +102,7 @@ export async function GET(request: NextRequest) {
     topPods: topPods.status === "fulfilled" ? toRankingItems(topPods.value, ["title", "name", "podName"], ["count", "accessCount", "total"]) : [],
     bottomPods: bottomPods.status === "fulfilled" ? toRankingItems(bottomPods.value, ["title", "name", "podName"], ["count", "accessCount", "total"]) : [],
     priorityAlerts: [], // sem persistência própria, não há motor de alerta configurável nesta versão
-    autoInsights: [], // idem — dependia de histórico armazenado
+    autoInsights,
     syncStatus: { lastSyncAt: new Date().toISOString(), status: partialCoverage ? "parcial" : "sucesso", source: "Intranet BeeHome (tempo real)" },
     partialCoverage,
   };
