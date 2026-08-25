@@ -63,13 +63,27 @@ function healthChecks(): HealthCheck[] {
   ];
 }
 
+const SAMPLE_MAX_CHARS = 800;
+
+/** Recorta o corpo real da resposta pra caber na tela — é essa amostra que evita ter que adivinhar o formato de campos de um endpoint ainda não usado em nenhuma tela. */
+function sampleOf(value: unknown): string {
+  let json: string;
+  try {
+    json = JSON.stringify(value, null, 0);
+  } catch {
+    return "(não foi possível serializar a resposta)";
+  }
+  if (json.length <= SAMPLE_MAX_CHARS) return json;
+  return `${json.slice(0, SAMPLE_MAX_CHARS)}… (${json.length} caracteres no total)`;
+}
+
 async function runHealthChecks() {
   const checks = healthChecks();
   const results = await Promise.allSettled(checks.map((c) => callBeeHome(c.alias, c.params)));
   return checks.map((c, i) => {
     const result = results[i];
     if (result.status === "fulfilled") {
-      return { alias: c.alias, label: c.label, ok: true, detail: "Respondeu normalmente." };
+      return { alias: c.alias, label: c.label, ok: true, detail: "Respondeu normalmente.", sample: sampleOf(result.value) };
     }
     const reason = result.reason;
     const detail =
@@ -78,7 +92,7 @@ async function runHealthChecks() {
         : reason instanceof Error
           ? reason.message
           : "Falha desconhecida ao chamar a BeeHome.";
-    return { alias: c.alias, label: c.label, ok: false, detail };
+    return { alias: c.alias, label: c.label, ok: false, detail, sample: null };
   });
 }
 

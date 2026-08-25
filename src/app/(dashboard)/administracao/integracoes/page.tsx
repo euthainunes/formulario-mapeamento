@@ -104,7 +104,7 @@ function BeeHomeTokenPanel() {
                 : `Token válido — ${result.checks.filter((c) => c.ok).length} de ${result.checks.length} endpoints responderam (veja abaixo quais falharam).`
               : "Token não autenticou em nenhuma verificação — sobrescrita não foi mantida."}
           </p>
-          <ul className="max-h-72 overflow-y-auto scrollbar-thin space-y-1 pr-1">
+          <ul className="max-h-96 overflow-y-auto scrollbar-thin space-y-1 pr-1">
             {result.checks.map((check) => (
               <li key={check.alias} className="flex items-start gap-1.5 text-xs">
                 {check.ok ? (
@@ -112,9 +112,19 @@ function BeeHomeTokenPanel() {
                 ) : (
                   <XCircle className="h-3.5 w-3.5 text-error shrink-0 mt-0.5" />
                 )}
-                <span>
-                  <strong className="font-medium">{check.label}:</strong> {check.detail}
-                </span>
+                <div className="min-w-0">
+                  <span>
+                    <strong className="font-medium">{check.label}:</strong> {check.detail}
+                  </span>
+                  {check.ok && check.sample && (
+                    <details className="mt-0.5">
+                      <summary className="cursor-pointer text-brand-primary hover:underline">Ver amostra da resposta</summary>
+                      <pre className="mt-1 whitespace-pre-wrap break-all rounded bg-black/[0.03] p-2 text-[10px] text-text-secondary">
+                        {check.sample}
+                      </pre>
+                    </details>
+                  )}
+                </div>
               </li>
             ))}
           </ul>

@@ -9,6 +9,7 @@ interface HealthCheckResult {
   label: string;
   ok: boolean;
   detail: string;
+  sample: string | null;
 }
 
 interface TokenTestResponse {
