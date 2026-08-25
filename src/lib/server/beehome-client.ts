@@ -39,8 +39,19 @@ export const BEEHOME_ENDPOINTS = {
   // BeeHome. Enquanto isso, /api/engagement degrada com segurança (fica
   // vazio) em vez de quebrar.
   reaction: "/api/insights/reaction",
+  // ⚠️ CONFIRMADO COM CHAMADA REAL (25/08/2026): HTTP 500 do lado da
+  // BeeHome com startDate/endDate — os mesmos params documentados que
+  // funcionam em auditLoginsByDate. Bug do lado deles, não nosso —
+  // reportar ao time BeeHome. /api/access degrada com segurança (KPI
+  // "Total de logins" e "Média diária" ficam zerados) em vez de quebrar.
   auditLogins: "/audit/logins",
   auditLoginsByDate: "/audit/loginsByDate",
+  // ⚠️ CONFIRMADO COM CHAMADA REAL (25/08/2026): também HTTP 500 do lado
+  // da BeeHome. Junto com auditAverageLoginsByDay (abaixo) e auditLogins
+  // (acima), são 3 endpoints da família de auditoria de login todos
+  // quebrados no servidor deles — indício de problema sistêmico nesse
+  // módulo específico, não isolado. /api/access degrada com segurança
+  // (averageByHour e o horário de pico ficam vazios) em vez de quebrar.
   auditAverageLoginsByHour: "/audit/averageLoginsByHour",
   // ⚠️ CONFIRMADO COM CHAMADA REAL (25/08/2026): o servidor da BeeHome
   // devolve 500 (NullPointerException: "date must not be null", em
@@ -50,6 +61,10 @@ export const BEEHOME_ENDPOINTS = {
   // BeeHome. /api/access já degrada com segurança (averageByWeekday fica
   // vazio) em vez de quebrar.
   auditAverageLoginsByDay: "/audit/averageLoginsByDay",
+  // ⚠️ CONFIRMADO COM CHAMADA REAL (25/08/2026): HTTP 404 do lado da
+  // BeeHome com o path documentado — provável path errado/desatualizado,
+  // mesma situação de `reaction`. Não usado em nenhuma tela ainda; não
+  // adivinhar o path correto, perguntar ao time BeeHome.
   insightsAccessByYear: "/api/insights/access",
   newsListMostViewedNews: "/news/listMostViewedNews",
   newsListMostLikedNews: "/news/listMostLikedNews",
