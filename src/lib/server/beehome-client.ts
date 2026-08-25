@@ -12,6 +12,8 @@
  * inventado aqui além do que já estava validado no backend.
  */
 
+import { getBeeHomeTokenOverride } from "@/lib/server/beehome-token";
+
 export class BeeHomeApiError extends Error {
   constructor(
     message: string,
@@ -80,7 +82,10 @@ function baseUrl(): string {
   return url;
 }
 
-function token(): string {
+/** Prioriza o token colado manualmente na tela de Integrações (cookie httpOnly, ver beehome-token.ts) sobre a variável de ambiente — permite trocar o token em uso sem redeploy. */
+async function token(): Promise<string> {
+  const override = await getBeeHomeTokenOverride();
+  if (override) return override;
   const t = process.env.BEEHOME_BEARER_TOKEN;
   if (!t) throw new Error("BEEHOME_BEARER_TOKEN não está definido.");
   return t;
@@ -110,7 +115,7 @@ export async function callBeeHome<T = unknown>(alias: BeeHomeEndpointAlias, para
     const timeoutHandle = setTimeout(() => controller.abort(), TIMEOUT_MS);
     try {
       const response = await fetch(url.toString(), {
-        headers: { Authorization: `Bearer ${token()}`, Accept: "application/json" },
+        headers: { Authorization: `Bearer ${await token()}`, Accept: "application/json" },
         signal: controller.signal,
         cache: "no-store",
       });
