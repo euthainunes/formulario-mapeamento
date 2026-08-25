@@ -1,6 +1,126 @@
-import { NextRequest } from "next/server";
-import { proxyToBackend } from "@/lib/server/backend-proxy";
+import { NextRequest, NextResponse } from "next/server";
+import { differenceInCalendarDays } from "date-fns";
+import { getSessionClaims } from "@/lib/server/admin-session";
+import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
+import { toNumber, parseDateRange, asList } from "@/lib/server/beehome-mappers";
+import { calcVariation } from "@/lib/metrics";
+import { AccessData, HourAverage, WeekdayAverage } from "@/services/contracts/access.contract";
+import { KpiCard } from "@/types/metrics";
+
+/**
+ * GET /api/access — sem banco de dados, direto na BeeHome (ver dashboard/route.ts
+ * para a explicação geral do padrão). `heatmap` fica sempre vazio: a BeeHome
+ * não documenta um endpoint que cruze dia-da-semana × hora numa só resposta
+ * (só marginais separados — `auditAverageLoginsByHour`/`ByDay`), e cruzar os
+ * dois manualmente seria inventar um dado que ela não fornece.
+ */
+
+function previousRange(range: { from: string; to: string }): { from: string; to: string } {
+  const from = new Date(range.from);
+  const to = new Date(range.to);
+  const spanDays = differenceInCalendarDays(to, from) + 1;
+  const prevTo = new Date(from);
+  prevTo.setDate(prevTo.getDate() - 1);
+  const prevFrom = new Date(prevTo);
+  prevFrom.setDate(prevFrom.getDate() - (spanDays - 1));
+  const iso = (d: Date) => d.toISOString().slice(0, 10);
+  return { from: iso(prevFrom), to: iso(prevTo) };
+}
 
 export async function GET(request: NextRequest) {
-  return proxyToBackend(request, "/analytics/access");
+  const session = await getSessionClaims();
+  if (!session) {
+    return NextResponse.json({ statusCode: 401, message: "Sessão expirada ou inexistente. Faça login novamente." }, { status: 401 });
+  }
+
+  const range = parseDateRange(request);
+  const prevRange = previousRange(range);
+  const days = Math.max(1, differenceInCalendarDays(new Date(range.to), new Date(range.from)) + 1);
+
+  const results = await Promise.allSettled([
+    callBeeHome("auditLogins", { startDate: range.from, endDate: range.to }),
+    callBeeHome("auditLogins", { startDate: prevRange.from, endDate: prevRange.to }),
+    callBeeHome("auditLoginsByDate", { startDate: range.from, endDate: range.to }),
+    callBeeHome("auditAverageLoginsByHour", { startDate: range.from, endDate: range.to }),
+    callBeeHome("auditAverageLoginsByDay", { startDate: range.from, endDate: range.to }),
+  ]);
+
+  const [totalLogins, totalLoginsPrev, loginsByDate, avgByHour, avgByDay] = results;
+
+  const failures = results.filter((r) => r.status === "rejected") as PromiseRejectedResult[];
+  const partialCoverage = failures.length > 0;
+  if (failures.length > 0) {
+    console.error(
+      "Acessos: uma ou mais chamadas à BeeHome falharam —",
+      failures.map((f) => (f.reason instanceof BeeHomeApiError ? f.reason.message : String(f.reason))),
+    );
+  }
+
+  const totalCurrent = totalLogins.status === "fulfilled" ? toNumber((totalLogins.value as Record<string, unknown>).total ?? totalLogins.value) : 0;
+  const totalPrevious =
+    totalLoginsPrev.status === "fulfilled" ? toNumber((totalLoginsPrev.value as Record<string, unknown>).total ?? totalLoginsPrev.value) : 0;
+
+  const hourRows = avgByHour.status === "fulfilled" ? asList(avgByHour.value) : [];
+  const averageByHour: HourAverage[] = hourRows
+    .map((row) => ({ hour: toNumber(row.hour), average: toNumber(row.average ?? row.value ?? row.count) }))
+    .filter((h) => Number.isFinite(h.hour));
+  let peakHour = 0;
+  let peakValue = -1;
+  for (const h of averageByHour) {
+    if (h.average > peakValue) {
+      peakValue = h.average;
+      peakHour = h.hour;
+    }
+  }
+
+  const dayRows = avgByDay.status === "fulfilled" ? asList(avgByDay.value) : [];
+  const averageByWeekday: WeekdayAverage[] = dayRows
+    .map((row) => {
+      const weekday = String(row.weekday ?? row.dayOfWeek ?? row.day ?? "");
+      const average = row.average ?? row.value ?? row.count;
+      if (!weekday || average === undefined) return null;
+      return { weekday, average: toNumber(average) };
+    })
+    .filter((w): w is WeekdayAverage => w !== null);
+
+  const dateRows = loginsByDate.status === "fulfilled" ? asList(loginsByDate.value) : [];
+  const loginTable = dateRows
+    .map((row) => ({ date: String(row.dayString ?? row.date ?? ""), total: toNumber(row.total ?? row.count ?? row.logins) }))
+    .filter((r) => r.date);
+
+  const kpis: KpiCard[] = [
+    { id: "total-logins", label: "Total de logins", value: totalCurrent, variation: calcVariation(totalCurrent, totalPrevious) },
+    {
+      id: "daily-average",
+      label: "Média diária",
+      value: Math.round(totalCurrent / days),
+      variation: calcVariation(totalCurrent / days, totalPrevious / days),
+    },
+    {
+      id: "peak-hour",
+      label: "Horário de pico",
+      value: peakHour,
+      formattedValue: `${peakHour}h`,
+      variation: { current: peakHour, previous: peakHour, comparable: false, percentChange: null, direction: "none" },
+    },
+    {
+      id: "access-variation",
+      label: "Variação de acessos",
+      value: totalCurrent,
+      variation: calcVariation(totalCurrent, totalPrevious),
+      unit: "percent",
+    },
+  ];
+
+  const data: AccessData = {
+    kpis,
+    loginsByDate: loginTable.map((t) => ({ date: t.date, value: t.total })),
+    averageByHour,
+    averageByWeekday,
+    heatmap: [], // ver comentário no topo do arquivo
+    loginTable,
+    partialCoverage,
+  };
+
+  return NextResponse.json(data);
 }
