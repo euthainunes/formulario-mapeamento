@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
-import { toNumber, parseDateRange, asList, kpisFromPeopleToday, toRankingItems, deviceBreakdownFrom, extractIsoDate } from "@/lib/server/beehome-mappers";
+import { toNumber, parseDateRange, asList, kpisFromPeopleToday, toRankingItems, toBeezzPost, deviceBreakdownFrom, extractIsoDate } from "@/lib/server/beehome-mappers";
 import { ExecutiveDashboardData } from "@/types/dashboard";
 
 /**
@@ -65,12 +65,24 @@ export async function GET(request: NextRequest) {
     activeUsersEvolution,
     engagementByType: [], // sem fonte única da BeeHome para todos os tipos numa só chamada — ver reaction (exige um `type` por chamada)
     deviceBreakdown,
-    topContent: topNews.status === "fulfilled" ? toRankingItems(topNews.value, ["title", "name"], ["views", "viewCount", "count"]) : [],
+    // Confirmado com chamada real (25/08/2026): título vem em `newsTitle`,
+    // visualizações em `viewsCount` — nomes antigos (`title`/`views`) nunca
+    // batiam, então essa lista sempre vinha vazia.
+    topContent: topNews.status === "fulfilled" ? toRankingItems(topNews.value, ["newsTitle", "title", "name"], ["viewsCount", "views", "viewCount", "count"]) : [],
     bottomContent: [], // BeeHome só documenta "mais visto/curtido/comentado" — não existe "menos" para conteúdo
-    topBeezz: topBeezz.status === "fulfilled" ? toRankingItems(topBeezz.value, ["title", "name", "text"], ["likes", "likeCount", "count"]) : [],
+    // O texto do Beezz vem aninhado em `row.beezz` (ver toBeezzPost) — não dá pra extrair com toRankingItems, que só olha campos soltos.
+    topBeezz:
+      topBeezz.status === "fulfilled"
+        ? asList(topBeezz.value)
+            .map(toBeezzPost)
+            .filter((p): p is NonNullable<typeof p> => p !== null)
+            .map((p) => ({ id: p.id, name: p.title, value: p.likes }))
+        : [],
     bottomBeezz: [], // mesma observação de topContent
-    topPods: topPods.status === "fulfilled" ? toRankingItems(topPods.value, ["name", "podName"], ["accessCount", "count", "total"]) : [],
-    bottomPods: bottomPods.status === "fulfilled" ? toRankingItems(bottomPods.value, ["name", "podName"], ["accessCount", "count", "total"]) : [],
+    // Confirmado com chamada real (25/08/2026): nome do pod vem em `title`
+    // (não `name`/`podName`) — mesmo bug de pods/route.ts.
+    topPods: topPods.status === "fulfilled" ? toRankingItems(topPods.value, ["title", "name", "podName"], ["count", "accessCount", "total"]) : [],
+    bottomPods: bottomPods.status === "fulfilled" ? toRankingItems(bottomPods.value, ["title", "name", "podName"], ["count", "accessCount", "total"]) : [],
     priorityAlerts: [], // sem persistência própria, não há motor de alerta configurável nesta versão
     autoInsights: [], // idem — dependia de histórico armazenado
     syncStatus: { lastSyncAt: new Date().toISOString(), status: partialCoverage ? "parcial" : "sucesso", source: "Intranet BeeHome (tempo real)" },

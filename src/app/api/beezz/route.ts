@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getSessionClaims } from "@/lib/server/admin-session";
 import { callBeeHome, BeeHomeApiError } from "@/lib/server/beehome-client";
-import { toNumber, parseDateRange, asList, toBeezzPost, toRankingItems, extractIsoDate } from "@/lib/server/beehome-mappers";
+import { toNumber, parseDateRange, asList, toBeezzPost, toCreatorRanking, extractIsoDate } from "@/lib/server/beehome-mappers";
 import { calcVariation } from "@/lib/metrics";
 import { BeezzData } from "@/services/contracts/beezz.contract";
 import { BeezzPost } from "@/types/content";
@@ -43,11 +43,14 @@ export async function GET(request: NextRequest) {
 
   const posts: BeezzPost[] =
     likeTop.status === "fulfilled" ? asList(likeTop.value).map(toBeezzPost).filter((p): p is BeezzPost => p !== null) : [];
-  const topLiked = likeTop.status === "fulfilled" ? toRankingItems(likeTop.value, ["title", "text", "name"], ["likes", "likeCount", "count"]) : [];
-  const topCommented =
-    commentTop.status === "fulfilled" ? toRankingItems(commentTop.value, ["title", "text", "name"], ["comments", "commentCount", "count"]) : [];
-  const topCreators =
-    creatorTop.status === "fulfilled" ? toRankingItems(creatorTop.value, ["name", "userName", "authorName"], ["count", "beezzCount", "total"]) : [];
+  // topLiked/topCommented derivam dos mesmos posts já mapeados (toBeezzPost já
+  // resolve o texto/id aninhados em `row.beezz`) — evita duplicar a mesma
+  // extração aninhada com toRankingItems, que só olha campos soltos.
+  const topLiked = posts.map((p) => ({ id: p.id, name: p.title, value: p.likes }));
+  const commentedPosts: BeezzPost[] =
+    commentTop.status === "fulfilled" ? asList(commentTop.value).map(toBeezzPost).filter((p): p is BeezzPost => p !== null) : [];
+  const topCommented = commentedPosts.map((p) => ({ id: p.id, name: p.title, value: p.likes }));
+  const topCreators = creatorTop.status === "fulfilled" ? toCreatorRanking(creatorTop.value) : [];
 
   const timelineRows = timeline.status === "fulfilled" ? asList(timeline.value) : [];
   const activityTimeline = timelineRows

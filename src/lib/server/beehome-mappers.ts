@@ -61,6 +61,10 @@ export function extractIsoDate(row: Record<string, unknown>): string {
     const m = row.dayString.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
     if (m) return `${m[3]}-${m[2]}-${m[1]}`;
   }
+  // Confirmado com chamada real a `newsGetPublishedNewsChart`: a data vem
+  // como epoch em milissegundos (número), não como texto — formato
+  // diferente de `day`/`date`/`dayString` acima.
+  if (typeof row.regDate === "number" && row.regDate > 0) return new Date(row.regDate).toISOString().slice(0, 10);
   return "";
 }
 
@@ -126,35 +130,74 @@ export function toRankingItems(payload: unknown, nameKeys: string[], valueKeys: 
     .filter((item): item is RankingItem => item !== null);
 }
 
-/** Extrai um item de conteúdo (notícia) de uma linha de `newsListMostViewedNews`/`ListMostLikedNews`/`ListMostCommentedNews` — schema exato não confirmado, então cada métrica ausente vira 0 em vez de quebrar. */
-export function toContentItem(row: Record<string, unknown>, index: number): ContentItem | null {
-  const title = (row.title ?? row.name) as string | undefined;
+/**
+ * Extrai um item de conteúdo (notícia) de uma linha de
+ * `newsListMostViewedNews`/`ListMostLikedNews`/`ListMostCommentedNews`.
+ * Confirmado com chamada real (25/08/2026): o título vem em `newsTitle`
+ * (não `title`/`name`), as métricas vêm em `viewsCount`/`likesCount`/
+ * `commentsCount`, e `id` vem sempre `0` (não é um identificador real) — por
+ * isso usa o próprio título como chave estável para unir os 3 rankings em
+ * content/route.ts, em vez de um id que não distingue nada.
+ */
+export function toContentItem(row: Record<string, unknown>): ContentItem | null {
+  const title = (row.newsTitle ?? row.title ?? row.name) as string | undefined;
   if (!title) return null;
+  const realId = row.id && row.id !== 0 ? String(row.id) : null;
   return {
-    id: String(row.id ?? index),
+    id: realId ?? title,
     title,
     type: "noticia" as const,
     publishedAt: String(row.publishedAt ?? row.date ?? row.createdAt ?? ""),
     author: String(row.author ?? row.authorName ?? ""),
-    views: toNumber(row.views ?? row.viewCount ?? row.uniqueViews),
-    likes: toNumber(row.likes ?? row.likeCount),
-    comments: toNumber(row.comments ?? row.commentCount),
+    views: toNumber(row.viewsCount ?? row.views ?? row.viewCount ?? row.uniqueViews),
+    likes: toNumber(row.likesCount ?? row.likes ?? row.likeCount),
+    comments: toNumber(row.commentsCount ?? row.comments ?? row.commentCount),
     performance: "na_media" as const, // classificado depois, com base na média real do conjunto retornado
   };
 }
 
-/** Extrai um Beezz de uma linha de `beedataBeezzLikeTop`/`beedataBeezzCommentTop` — schema exato não confirmado (mesma ressalva de toContentItem). */
+/**
+ * Extrai um Beezz de uma linha de `beedataBeezzLikeTop`/`beedataBeezzCommentTop`.
+ * Confirmado com chamada real (25/08/2026): o conteúdo vem aninhado em
+ * `row.beezz` (id, text/shortText, creator.fullName) — não solto na raiz da
+ * linha, que só tem `count`/`userId`/`entityId`. `row.count` é a métrica que
+ * ordena aquele ranking específico (curtidas em beedataBeezzLikeTop,
+ * comentários em beedataBeezzCommentTop) — a BeeHome não distingue os dois
+ * campos na resposta, então o mesmo `count` alimenta likes OU comments
+ * dependendo de qual endpoint chamou.
+ */
 export function toBeezzPost(row: Record<string, unknown>, index: number): BeezzPost | null {
-  const title = (row.title ?? row.text ?? row.name) as string | undefined;
+  const beezz = (row.beezz && typeof row.beezz === "object" ? row.beezz : {}) as Record<string, unknown>;
+  const creator = (beezz.creator && typeof beezz.creator === "object" ? beezz.creator : {}) as Record<string, unknown>;
+  const title = (beezz.shortText ?? beezz.text ?? row.title ?? row.text ?? row.name) as string | undefined;
   if (!title) return null;
+  const rawId = beezz.id ?? row.entityId ?? row.id;
   return {
-    id: String(row.id ?? index),
+    id: rawId !== undefined && rawId !== null && rawId !== 0 ? String(rawId) : String(index),
     title,
-    author: String(row.author ?? row.authorName ?? row.userName ?? ""),
-    createdAt: String(row.createdAt ?? row.date ?? ""),
+    author: String(creator.fullName ?? row.author ?? row.authorName ?? row.userName ?? ""),
+    createdAt: String(beezz.createdAt ?? row.createdAt ?? row.date ?? ""),
     likes: toNumber(row.likes ?? row.likeCount ?? row.count),
     comments: toNumber(row.comments ?? row.commentCount),
   };
+}
+
+/**
+ * Extrai o ranking de criadores de Beezz a partir de `beedataUserCreateBeezzTop`.
+ * Confirmado com chamada real (25/08/2026): o nome vem aninhado em
+ * `row.user.fullName` (não solto na raiz) — schema próprio desse endpoint,
+ * diferente do `toRankingItems` genérico (que só olha campos soltos).
+ */
+export function toCreatorRanking(payload: unknown): RankingItem[] {
+  return asList(payload)
+    .map((row, index) => {
+      const user = (row.user && typeof row.user === "object" ? row.user : {}) as Record<string, unknown>;
+      const name = user.fullName as string | undefined;
+      if (!name || row.count === undefined) return null;
+      const id = user.id !== undefined && user.id !== null ? String(user.id) : String(index);
+      return { id, name, value: toNumber(row.count) };
+    })
+    .filter((item): item is RankingItem => item !== null);
 }
 
 /** Constrói o breakdown por dispositivo (count + percent) a partir da resposta de `device`. */

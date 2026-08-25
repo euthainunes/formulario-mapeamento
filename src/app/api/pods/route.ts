@@ -43,13 +43,16 @@ export async function GET(request: NextRequest) {
     );
   }
 
+  // Confirmado com chamada real (25/08/2026): o nome do pod vem no campo
+  // `title` (não `name`/`podName`) — sem essa correção, todas as linhas
+  // eram descartadas e a tela ficava vazia mesmo com dado real chegando.
   function podMap(result: PromiseSettledResult<unknown>): Map<string, number> {
     const map = new Map<string, number>();
     if (result.status !== "fulfilled") return map;
     for (const row of asList(result.value)) {
-      const name = String(row.name ?? row.podName ?? "");
+      const name = String(row.title ?? row.name ?? row.podName ?? "");
       if (!name) continue;
-      map.set(name, toNumber(row.accessCount ?? row.count ?? row.total));
+      map.set(name, toNumber(row.count ?? row.accessCount ?? row.total));
     }
     return map;
   }
